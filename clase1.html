@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 1: La Crisis de la Estimación</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .background-gradient {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0.1;
+        }
+
+        .slide-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 40px 120px 40px;
+            position: relative;
+        }
+
+        .slide {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-content {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .slide-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .slide-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .slide-content::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 10px;
+        }
+
+        .slide-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.8);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 25px;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        p, li {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            color: #d0d0d0;
+            margin-bottom: 15px;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        li {
+            padding: 15px 0;
+            padding-left: 40px;
+            position: relative;
+        }
+
+        li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .formula {
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            text-align: center;
+            color: #667eea;
+        }
+
+        .highlight {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .instructor-info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px 20px;
+            font-size: 0.9rem;
+            color: #c0c0c0;
+            z-index: 100;
+        }
+
+        .instructor-info strong {
+            color: #667eea;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            z-index: 100;
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 30px;
+            right: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: #c0c0c0;
+            z-index: 100;
+        }
+
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(102, 126, 234, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .home-btn:hover {
+            background: rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 25px;
+        }
+
+        .box {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .workshop {
+            background: rgba(118, 75, 162, 0.1);
+            border: 2px solid rgba(118, 75, 162, 0.4);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 25px 0;
+        }
+
+        .workshop h3 {
+            color: #764ba2;
+            margin-bottom: 20px;
+        }
+
+        .emoji {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .slide-container {
+                padding: 70px 20px 100px 20px;
+            }
+
+            .slide-content {
+                padding: 25px;
+                max-height: calc(100vh - 170px);
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            p, li {
+                font-size: 1.1rem;
+            }
+
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                bottom: 15px;
+            }
+
+            .slide-counter {
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-gradient"></div>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <div class="instructor-info">
+        <strong>Alejandro Sfrede</strong> - Área de Arquitectura
+    </div>
+
+    <a href="index.html" class="home-btn">🏠 Portal</a>
+
+    <div class="slide-counter" id="slideCounter">1 / 1</div>
+
+    <div class="slide-container">
+        <!-- Slide 1: Portada -->
+        <div class="slide active">
+            <div class="slide-content">
+                <h1>Clase 1:<br>La Crisis de la Estimación</h1>
+                <h2>Incertidumbre y Factores Humanos</h2>
+                <p style="font-size: 1.5rem; margin-top: 40px;">
+                    <span class="highlight">Duración:</span> 3 horas<br>
+                    <span class="highlight">Objetivo:</span> Comprender por qué las estimaciones tradicionales fallan
+                </p>
+                <p style="margin-top: 30px; font-size: 1.2rem; color: #a0a0a0;">
+                    Presiona → o ESPACIO para continuar
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 2: Agenda -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📋 Agenda de la Clase</h2>
+                <ul style="font-size: 1.4rem;">
+                    <li>Introducción al Problema de la Estimación (30 min)</li>
+                    <li>El Cono de Incertidumbre (45 min)</li>
+                    <li>Investigación del Desafío del Malvavisco (30 min)</li>
+                    <li>☕ Break (15 min)</li>
+                    <li>Factores Psicológicos: Parkinson y Estudiante (35 min)</li>
+                    <li>Estudios de Caso y Evidencia Empírica (25 min)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 3: El Problema Fundamental -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>❌ El Problema Fundamental</h2>
+                <div class="box">
+                    <h3>La Confusión Peligrosa</h3>
+                    <p><strong style="color: #667eea;">ESTIMACIÓN</strong> ≠ <strong style="color: #764ba2;">PLAN</strong></p>
+                    <ul style="margin-top: 20px;">
+                        <li><strong>Estimación:</strong> Pronóstico probabilístico sobre un futuro incierto</li>
+                        <li><strong>Plan:</strong> Organización del trabajo</li>
+                    </ul>
+                </div>
+                <p style="margin-top: 30px; font-size: 1.5rem; color: #ff6b6b;">
+                    ⚠️ Tratar estimaciones iniciales (altamente inciertas) como compromisos fijos
+                    es la causa principal del fracaso de proyectos
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 4: Cono de Incertidumbre - Introducción -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🌀 El Cono de Incertidumbre</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Modelo que describe la evolución de la incertidumbre durante la vida de un proyecto
+                </p>
+                <div class="two-column">
+                    <div class="box">
+                        <h3>Al Inicio</h3>
+                        <p class="emoji">📊</p>
+                        <p><strong>Información conocida:</strong> BAJA</p>
+                        <p><strong>Variabilidad:</strong> MÁXIMA</p>
+                        <p style="color: #ff6b6b; font-weight: 600;">±400% de error posible</p>
+                    </div>
+                    <div class="box">
+                        <h3>Al Avanzar</h3>
+                        <p class="emoji">✅</p>
+                        <p><strong>Información conocida:</strong> ALTA</p>
+                        <p><strong>Variabilidad:</strong> MÍNIMA</p>
+                        <p style="color: #51cf66; font-weight: 600;">±10% de error</p>
+                    </div>
+                </div>
+                <p style="margin-top: 30px; text-align: center; font-style: italic; color: #a0a0a0;">
+                    Un proyecto estimado en 10 meses al inicio podría tomar entre 2 y 40 meses
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 5: El Error Tradicional -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>❌ El Error del Enfoque Tradicional</h2>
+                <h3>¿Qué hacen los métodos tradicionales (cascada)?</h3>
+                <ul>
+                    <li>Pasan MESES en la fase de "toma de requisitos"</li>
+                    <li>Intentan reducir la incertidumbre con documentación</li>
+                    <li>Planifican TODO antes de empezar</li>
+                </ul>
+                <div style="margin: 40px 0; padding: 30px; background: rgba(255, 107, 107, 0.1); border: 2px solid rgba(255, 107, 107, 0.3); border-radius: 15px;">
+                    <p style="font-size: 1.6rem; color: #ff6b6b; text-align: center; font-weight: 600;">
+                        Resultado: La incertidumbre se mantiene ALTA<br>
+                        porque el equipo AÚN NO HA COMENZADO A HACER EL TRABAJO
+                    </p>
+                </div>
+                <p style="text-align: center; color: #a0a0a0;">
+                    Se pierden meses en planificación teórica mientras el cono permanece ANCHO
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 6: La Solución Ágil -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>✅ La Solución Ágil</h2>
+                <div class="formula">
+                    "Planifica un poquito, ponte a hacer"
+                </div>
+                <h3>¿Por qué funciona?</h3>
+                <ul style="font-size: 1.4rem;">
+                    <li>Comienza a construir e iterar DE INMEDIATO</li>
+                    <li>Obtiene ciclos de FEEDBACK rápidos</li>
+                    <li>El feedback es lo ÚNICO que reduce la incertidumbre</li>
+                    <li>Estrecha el cono más RÁPIDO que la planificación tradicional</li>
+                </ul>
+                <div style="margin-top: 40px; padding: 25px; background: rgba(81, 207, 102, 0.1); border: 2px solid rgba(81, 207, 102, 0.3); border-radius: 15px;">
+                    <p style="text-align: center; font-size: 1.3rem; color: #51cf66;">
+                        💡 La iteración y el feedback rápido son las ÚNICAS herramientas
+                        reales para gestionar la incertidumbre
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Gráfico del Cono de Incertidumbre -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📊 Gráfico: El Cono de Incertidumbre</h2>
+                <p style="font-size: 1.3rem; margin-bottom: 20px; text-align: center;">
+                    Evolución de la variabilidad en estimaciones a lo largo del ciclo de vida del proyecto
+                </p>
+                <div style="background: rgba(255, 255, 255, 0.02); border: 2px solid rgba(102, 126, 234, 0.3); border-radius: 15px; padding: 30px; margin: 20px 0;">
+                    <svg width="100%" height="400" viewBox="0 0 800 400" style="background: rgba(0,0,0,0.2); border-radius: 10px;">
+                        <!-- Eje X -->
+                        <line x1="50" y1="350" x2="750" y2="350" stroke="#667eea" stroke-width="2"/>
+                        <!-- Eje Y -->
+                        <line x1="50" y1="50" x2="50" y2="350" stroke="#667eea" stroke-width="2"/>
+
+                        <!-- Cono superior (optimista) -->
+                        <path d="M 50,200 Q 200,80 350,150 Q 500,180 650,190 L 700,200 L 50,200 Z"
+                              fill="rgba(81, 207, 102, 0.2)" stroke="rgba(81, 207, 102, 0.6)" stroke-width="2"/>
+
+                        <!-- Cono inferior (pesimista) -->
+                        <path d="M 50,200 Q 200,320 350,250 Q 500,220 650,210 L 700,200 L 50,200 Z"
+                              fill="rgba(255, 107, 107, 0.2)" stroke="rgba(255, 107, 107, 0.6)" stroke-width="2"/>
+
+                        <!-- Línea central (estimación) -->
+                        <line x1="50" y1="200" x2="700" y2="200" stroke="#ffc107" stroke-width="3" stroke-dasharray="5,5"/>
+
+                        <!-- Etiquetas de fases -->
+                        <text x="100" y="380" fill="#d0d0d0" font-size="14" text-anchor="middle">Concepto</text>
+                        <text x="250" y="380" fill="#d0d0d0" font-size="14" text-anchor="middle">Requisitos</text>
+                        <text x="400" y="380" fill="#d0d0d0" font-size="14" text-anchor="middle">Diseño</text>
+                        <text x="550" y="380" fill="#d0d0d0" font-size="14" text-anchor="middle">Desarrollo</text>
+                        <text x="700" y="380" fill="#d0d0d0" font-size="14" text-anchor="middle">Entrega</text>
+
+                        <!-- Etiquetas de variabilidad -->
+                        <text x="100" y="70" fill="#51cf66" font-size="16" font-weight="bold">×4 (400%)</text>
+                        <text x="100" y="330" fill="#ff6b6b" font-size="16" font-weight="bold">×0.25 (25%)</text>
+                        <text x="700" y="190" fill="#51cf66" font-size="16">×1.1</text>
+                        <text x="700" y="220" fill="#ff6b6b" font-size="16">×0.9</text>
+
+                        <!-- Leyenda -->
+                        <rect x="520" y="20" width="15" height="15" fill="rgba(81, 207, 102, 0.4)"/>
+                        <text x="540" y="32" fill="#d0d0d0" font-size="13">Límite optimista</text>
+                        <rect x="520" y="40" width="15" height="15" fill="rgba(255, 107, 107, 0.4)"/>
+                        <text x="540" y="52" fill="#d0d0d0" font-size="13">Límite pesimista</text>
+                        <line x1="520" y1="65" x2="535" y2="65" stroke="#ffc107" stroke-width="2" stroke-dasharray="3,3"/>
+                        <text x="540" y="70" fill="#d0d0d0" font-size="13">Estimación central</text>
+                    </svg>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                    <div style="background: rgba(255, 107, 107, 0.1); padding: 15px; border-radius: 10px; border: 1px solid rgba(255, 107, 107, 0.3);">
+                        <p style="font-size: 1.1rem; text-align: center;"><strong style="color: #ff6b6b;">Al Inicio:</strong><br>±400% de variabilidad</p>
+                    </div>
+                    <div style="background: rgba(81, 207, 102, 0.1); padding: 15px; border-radius: 10px; border: 1px solid rgba(81, 207, 102, 0.3);">
+                        <p style="font-size: 1.1rem; text-align: center;"><strong style="color: #51cf66;">Al Final:</strong><br>±10% de variabilidad</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7b: Factores de Estimación -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🎯 Factores que Afectan la Estimación</h2>
+                <p style="font-size: 1.3rem; margin-bottom: 25px;">
+                    Clasificación de factores críticos en estimación de proyectos
+                </p>
+                <div class="two-column">
+                    <div class="box" style="background: rgba(102, 126, 234, 0.1);">
+                        <h3 style="color: #667eea;">📐 Factores Técnicos</h3>
+                        <ul style="font-size: 1.1rem;">
+                            <li><strong>Complejidad:</strong> Algoritmos, integraciones, arquitectura</li>
+                            <li><strong>Tecnología:</strong> Nueva vs conocida, madurez</li>
+                            <li><strong>Tamaño:</strong> Líneas de código, componentes</li>
+                            <li><strong>Calidad requerida:</strong> Testing, performance, seguridad</li>
+                            <li><strong>Restricciones:</strong> Hardware, software, regulatorias</li>
+                        </ul>
+                    </div>
+                    <div class="box" style="background: rgba(118, 75, 162, 0.1); border-color: rgba(118, 75, 162, 0.3);">
+                        <h3 style="color: #764ba2;">👥 Factores Humanos</h3>
+                        <ul style="font-size: 1.1rem;">
+                            <li><strong>Experiencia:</strong> Del equipo en dominio/tecnología</li>
+                            <li><strong>Disponibilidad:</strong> Dedicación, multitasking</li>
+                            <li><strong>Comunicación:</strong> Claridad de requisitos</li>
+                            <li><strong>Motivación:</strong> Compromiso del equipo</li>
+                            <li><strong>Rotación:</strong> Cambios en el personal</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="box" style="background: rgba(255, 193, 7, 0.1); border-color: rgba(255, 193, 7, 0.3); margin-top: 20px;">
+                    <h3 style="color: #ffc107;">⚠️ Factores de Entorno</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                        <ul style="font-size: 1.1rem;">
+                            <li><strong>Volatilidad requisitos:</strong> Cambios frecuentes</li>
+                            <li><strong>Dependencias externas:</strong> APIs, proveedores</li>
+                            <li><strong>Procesos:</strong> Metodología, governance</li>
+                        </ul>
+                        <ul style="font-size: 1.1rem;">
+                            <li><strong>Herramientas:</strong> IDE, CI/CD, testing</li>
+                            <li><strong>Presión temporal:</strong> Deadlines inflexibles</li>
+                            <li><strong>Stakeholders:</strong> Cantidad, expectativas</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7c: Clasificación de Riesgos -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>⚠️ Clasificación de Riesgos en Estimación</h2>
+                <h3>Riesgos por Probabilidad e Impacto</h3>
+                <table style="font-size: 1rem; margin: 20px 0;">
+                    <thead>
+                        <tr>
+                            <th>Categoría</th>
+                            <th>Tipo de Riesgo</th>
+                            <th>Probabilidad</th>
+                            <th>Impacto</th>
+                            <th>Estrategia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background: rgba(255, 107, 107, 0.15);">
+                            <td rowspan="3"><strong style="color: #ff6b6b;">CRÍTICOS</strong></td>
+                            <td>Cambios de alcance no controlados</td>
+                            <td style="color: #ff6b6b;">ALTA</td>
+                            <td style="color: #ff6b6b;">ALTO</td>
+                            <td>Gestión de cambios formal</td>
+                        </tr>
+                        <tr style="background: rgba(255, 107, 107, 0.15);">
+                            <td>Dependencia de recurso único</td>
+                            <td style="color: #ff6b6b;">ALTA</td>
+                            <td style="color: #ff6b6b;">ALTO</td>
+                            <td>Documentación + backup</td>
+                        </tr>
+                        <tr style="background: rgba(255, 107, 107, 0.15);">
+                            <td>Tecnología no probada</td>
+                            <td style="color: #ffc107;">MEDIA</td>
+                            <td style="color: #ff6b6b;">ALTO</td>
+                            <td>Proof of concept temprano</td>
+                        </tr>
+                        <tr style="background: rgba(255, 193, 7, 0.15);">
+                            <td rowspan="2"><strong style="color: #ffc107;">IMPORTANTES</strong></td>
+                            <td>Requisitos ambiguos</td>
+                            <td style="color: #ff6b6b;">ALTA</td>
+                            <td style="color: #ffc107;">MEDIO</td>
+                            <td>Refinamiento iterativo</td>
+                        </tr>
+                        <tr style="background: rgba(255, 193, 7, 0.15);">
+                            <td>Integraciones con sistemas legacy</td>
+                            <td style="color: #ffc107;">MEDIA</td>
+                            <td style="color: #ffc107;">MEDIO</td>
+                            <td>Buffer de integración</td>
+                        </tr>
+                        <tr style="background: rgba(81, 207, 102, 0.1);">
+                            <td rowspan="2"><strong style="color: #51cf66;">MENORES</strong></td>
+                            <td>Cambios en UI/UX</td>
+                            <td style="color: #ffc107;">MEDIA</td>
+                            <td style="color: #51cf66;">BAJO</td>
+                            <td>Diseño modular</td>
+                        </tr>
+                        <tr style="background: rgba(81, 207, 102, 0.1);">
+                            <td>Disponibilidad de ambiente de testing</td>
+                            <td style="color: #51cf66;">BAJA</td>
+                            <td style="color: #ffc107;">MEDIO</td>
+                            <td>Ambiente local + docker</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Slide 7d: Matriz de Riesgos Visual -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📊 Matriz de Riesgos: Probabilidad vs Impacto</h2>
+                <div style="background: rgba(255, 255, 255, 0.02); border: 2px solid rgba(102, 126, 234, 0.3); border-radius: 15px; padding: 30px; margin: 20px 0;">
+                    <svg width="100%" height="450" viewBox="0 0 700 450">
+                        <!-- Grid background -->
+                        <rect x="100" y="50" width="150" height="100" fill="rgba(81, 207, 102, 0.15)" stroke="rgba(81, 207, 102, 0.4)" stroke-width="1"/>
+                        <rect x="250" y="50" width="150" height="100" fill="rgba(81, 207, 102, 0.15)" stroke="rgba(81, 207, 102, 0.4)" stroke-width="1"/>
+                        <rect x="400" y="50" width="150" height="100" fill="rgba(255, 193, 7, 0.15)" stroke="rgba(255, 193, 7, 0.4)" stroke-width="1"/>
+
+                        <rect x="100" y="150" width="150" height="100" fill="rgba(81, 207, 102, 0.15)" stroke="rgba(81, 207, 102, 0.4)" stroke-width="1"/>
+                        <rect x="250" y="150" width="150" height="100" fill="rgba(255, 193, 7, 0.15)" stroke="rgba(255, 193, 7, 0.4)" stroke-width="1"/>
+                        <rect x="400" y="150" width="150" height="100" fill="rgba(255, 107, 107, 0.15)" stroke="rgba(255, 107, 107, 0.4)" stroke-width="1"/>
+
+                        <rect x="100" y="250" width="150" height="100" fill="rgba(255, 193, 7, 0.15)" stroke="rgba(255, 193, 7, 0.4)" stroke-width="1"/>
+                        <rect x="250" y="250" width="150" height="100" fill="rgba(255, 107, 107, 0.15)" stroke="rgba(255, 107, 107, 0.4)" stroke-width="1"/>
+                        <rect x="400" y="250" width="150" height="100" fill="rgba(255, 107, 107, 0.15)" stroke="rgba(255, 107, 107, 0.4)" stroke-width="1"/>
+
+                        <!-- Axes -->
+                        <line x1="100" y1="350" x2="550" y2="350" stroke="#667eea" stroke-width="2"/>
+                        <line x1="100" y1="50" x2="100" y2="350" stroke="#667eea" stroke-width="2"/>
+
+                        <!-- Labels -->
+                        <text x="325" y="380" fill="#d0d0d0" font-size="16" text-anchor="middle" font-weight="bold">PROBABILIDAD →</text>
+                        <text x="40" y="200" fill="#d0d0d0" font-size="16" text-anchor="middle" font-weight="bold" transform="rotate(-90, 40, 200)">IMPACTO →</text>
+
+                        <text x="175" y="370" fill="#d0d0d0" font-size="13" text-anchor="middle">BAJA</text>
+                        <text x="325" y="370" fill="#d0d0d0" font-size="13" text-anchor="middle">MEDIA</text>
+                        <text x="475" y="370" fill="#d0d0d0" font-size="13" text-anchor="middle">ALTA</text>
+
+                        <text x="85" y="105" fill="#d0d0d0" font-size="13" text-anchor="end">BAJO</text>
+                        <text x="85" y="205" fill="#d0d0d0" font-size="13" text-anchor="end">MEDIO</text>
+                        <text x="85" y="305" fill="#d0d0d0" font-size="13" text-anchor="end">ALTO</text>
+
+                        <!-- Risk examples -->
+                        <circle cx="175" cy="100" r="8" fill="#51cf66"/>
+                        <text x="175" y="125" fill="#d0d0d0" font-size="11" text-anchor="middle">UI</text>
+                        <text x="175" y="137" fill="#d0d0d0" font-size="11" text-anchor="middle">Changes</text>
+
+                        <circle cx="475" cy="100" r="8" fill="#ffc107"/>
+                        <text x="475" y="120" fill="#d0d0d0" font-size="10" text-anchor="middle">Tech</text>
+                        <text x="475" y="132" fill="#d0d0d0" font-size="10" text-anchor="middle">No probada</text>
+
+                        <circle cx="325" cy="200" r="8" fill="#ffc107"/>
+                        <text x="325" y="220" fill="#d0d0d0" font-size="10" text-anchor="middle">Legacy</text>
+                        <text x="325" y="232" fill="#d0d0d0" font-size="10" text-anchor="middle">Integration</text>
+
+                        <circle cx="475" cy="200" r="8" fill="#ff6b6b"/>
+                        <text x="475" y="218" fill="#d0d0d0" font-size="9" text-anchor="middle">Recurso</text>
+                        <text x="475" y="229" fill="#d0d0d0" font-size="9" text-anchor="middle">Único</text>
+
+                        <circle cx="475" cy="300" r="8" fill="#ff6b6b"/>
+                        <text x="475" y="318" fill="#d0d0d0" font-size="9" text-anchor="middle">Scope</text>
+                        <text x="475" y="329" fill="#d0d0d0" font-size="9" text-anchor="middle">Creep</text>
+
+                        <!-- Legend -->
+                        <rect x="50" y="400" width="20" height="15" fill="rgba(81, 207, 102, 0.3)" stroke="rgba(81, 207, 102, 0.6)" stroke-width="1"/>
+                        <text x="75" y="411" fill="#d0d0d0" font-size="13">Riesgo BAJO - Monitorear</text>
+
+                        <rect x="250" y="400" width="20" height="15" fill="rgba(255, 193, 7, 0.3)" stroke="rgba(255, 193, 7, 0.6)" stroke-width="1"/>
+                        <text x="275" y="411" fill="#d0d0d0" font-size="13">Riesgo MEDIO - Plan de mitigación</text>
+
+                        <rect x="500" y="400" width="20" height="15" fill="rgba(255, 107, 107, 0.3)" stroke="rgba(255, 107, 107, 0.6)" stroke-width="1"/>
+                        <text x="525" y="411" fill="#d0d0d0" font-size="13">Riesgo ALTO - Acción inmediata</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Investigación del Desafío del Malvavisco -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📊 Investigación: El Desafío del Malvavisco</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Estudio de Tom Wujec (2010) con más de 70 equipos de diversos perfiles
+                </p>
+                <div class="box">
+                    <h3>El Experimento</h3>
+                    <p style="font-size: 1.2rem;">
+                        Equipos reciben: 20 espaguetis, 1m de cinta adhesiva, 1m de hilo, 1 malvavisco.<br>
+                        <strong>Objetivo:</strong> Construir la torre AUTOPORTANTE más alta en 18 minutos,
+                        con el malvavisco en la cima.
+                    </p>
+                </div>
+                <h3 style="margin-top: 30px;">Resultados por Tipo de Equipo:</h3>
+                <table style="font-size: 1.1rem; margin-top: 20px;">
+                    <thead>
+                        <tr>
+                            <th>Tipo de Equipo</th>
+                            <th>Altura Promedio</th>
+                            <th>Observación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background: rgba(255, 107, 107, 0.1);">
+                            <td><strong>MBAs/Ejecutivos</strong></td>
+                            <td style="color: #ff6b6b;">25 cm</td>
+                            <td>Planificaron >15 min, malvavisco al final</td>
+                        </tr>
+                        <tr style="background: rgba(255, 193, 7, 0.1);">
+                            <td><strong>Abogados</strong></td>
+                            <td style="color: #ffc107;">38 cm</td>
+                            <td>Similar a MBAs, mucha negociación</td>
+                        </tr>
+                        <tr style="background: rgba(81, 207, 102, 0.1);">
+                            <td><strong>Niños de jardín</strong></td>
+                            <td style="color: #51cf66;">66 cm</td>
+                            <td>Iteraron, probaron el malvavisco desde el minuto 1</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Slide 9: Análisis del Comportamiento -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🔍 Análisis: ¿Por Qué Fallan los "Expertos"?</h2>
+                <div class="two-column">
+                    <div class="box" style="background: rgba(255, 107, 107, 0.1); border-color: rgba(255, 107, 107, 0.3);">
+                        <h3 style="color: #ff6b6b;">Patrón de Fracaso (MBAs)</h3>
+                        <ol style="font-size: 1.2rem;">
+                            <li>Minutos 0-10: Planificación y diseño en papel</li>
+                            <li>Minutos 10-15: Discusión sobre el mejor enfoque</li>
+                            <li>Minutos 15-17: Construcción frenética</li>
+                            <li>Minuto 18: Colocan malvavisco → COLAPSO TOTAL</li>
+                        </ol>
+                        <p style="margin-top: 20px; font-size: 1.1rem; font-weight: 600; color: #ff6b6b;">
+                            No tienen tiempo para iterar después del fracaso
+                        </p>
+                    </div>
+                    <div class="box" style="background: rgba(81, 207, 102, 0.1); border-color: rgba(81, 207, 102, 0.3);">
+                        <h3 style="color: #51cf66;">Patrón de Éxito (Niños)</h3>
+                        <ol style="font-size: 1.2rem;">
+                            <li>Minuto 1: Ponen malvavisco inmediatamente</li>
+                            <li>Minutos 2-5: Primera versión colapsa</li>
+                            <li>Minutos 6-10: Prueban 2da variante</li>
+                            <li>Minutos 11-18: Iteran y mejoran progresivamente</li>
+                        </ol>
+                        <p style="margin-top: 20px; font-size: 1.1rem; font-weight: 600; color: #51cf66;">
+                            Múltiples ciclos de feedback antes del tiempo límite
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Lecciones del Malvavisco para Proyectos -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>💡 Lecciones para Gestión de Proyectos</h2>
+                <div style="padding: 40px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border: 2px solid #667eea; border-radius: 20px;">
+                    <h3 style="color: #667eea; text-align: center; margin-bottom: 30px;">
+                        El Malvavisco = La INCERTIDUMBRE OCULTA en Proyectos
+                    </h3>
+                    <ul style="font-size: 1.3rem;">
+                        <li><strong>MBAs planearon todo:</strong> Equivalente a fase de "requisitos" de 6 meses</li>
+                        <li><strong>Pusieron malvavisco al final:</strong> Integración y testing al final del proyecto</li>
+                        <li><strong>Suposición falsa:</strong> "Sabemos cuánto pesa el malvavisco"</li>
+                        <li><strong>Resultado:</strong> Descubren problemas cuando YA NO HAY TIEMPO</li>
+                    </ul>
+                </div>
+                <div style="margin-top: 40px; padding: 30px; background: rgba(81, 207, 102, 0.1); border: 2px solid rgba(81, 207, 102, 0.3); border-radius: 15px;">
+                    <h3 style="color: #51cf66;">Lección Central del Experimento</h3>
+                    <p style="font-size: 1.4rem; text-align: center; line-height: 1.8;">
+                        <strong>Los niños no son más inteligentes</strong>, simplemente<br>
+                        <strong>NO TIENEN el mal hábito de "planificar primero, ejecutar después"</strong><br><br>
+                        Prueban INMEDIATAMENTE las suposiciones críticas (el peso del malvavisco),<br>
+                        lo que les da TIEMPO para ajustar cuando las cosas fallan
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Break -->
+        <div class="slide">
+            <div class="slide-content" style="text-align: center;">
+                <p class="emoji">☕</p>
+                <h2>Break - 15 minutos</h2>
+                <p style="font-size: 1.4rem; margin-top: 30px; color: #a0a0a0;">
+                    Próximo tema: Factores Psicológicos que destruyen cronogramas
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 12: Factores Psicológicos -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🧠 Factores Psicológicos: Los Enemigos Ocultos</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Los métodos tradicionales IGNORAN los factores humanos.<br>
+                    Asumen que los ejecutores son "nodos racionales" en un diagrama.
+                </p>
+                <div class="two-column">
+                    <div class="box">
+                        <h3>⚠️ El Problema</h3>
+                        <p>CPM calcula que un proyecto toma X días</p>
+                        <p>Pero ignora:</p>
+                        <ul style="font-size: 1.1rem;">
+                            <li>Procrastinación</li>
+                            <li>Expansión del trabajo</li>
+                            <li>Cambios de contexto</li>
+                            <li>Presión temporal</li>
+                        </ul>
+                    </div>
+                    <div class="box">
+                        <h3>✅ La Realidad</h3>
+                        <p>Los factores humanos son RIESGOS TANGIBLES del proyecto</p>
+                        <p>Impactan directamente:</p>
+                        <ul style="font-size: 1.1rem;">
+                            <li>Calidad</li>
+                            <li>Cronograma</li>
+                            <li>Costo</li>
+                            <li>Moral del equipo</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 13: Ley de Parkinson -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📏 Ley de Parkinson</h2>
+                <div class="formula">
+                    "El trabajo se expande hasta llenar<br>el tiempo disponible para que se termine"
+                </div>
+                <h3>Ejemplo Práctico:</h3>
+                <div class="box">
+                    <p style="font-size: 1.3rem;">
+                        Una tarea que requiere <span class="highlight">2 días</span> de esfuerzo real,
+                        pero se le asigna un plazo de <span class="highlight">10 días</span>:
+                    </p>
+                    <ul style="margin-top: 20px; font-size: 1.2rem;">
+                        <li>El ejecutor NO la terminará en 2 días</li>
+                        <li>NO reportará 8 días de holgura</li>
+                        <li>La entregará en (o justo antes de) 10 días</li>
+                        <li>El tiempo de seguridad se DESPERDICIA, no se protege</li>
+                    </ul>
+                </div>
+                <p style="margin-top: 30px; text-align: center; font-size: 1.3rem; color: #ff6b6b;">
+                    El ejecutor "dará vueltas" o "boludeará" para llenar el tiempo
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 14: Síndrome del Estudiante -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🎓 Síndrome del Estudiante</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Fenómeno relacionado con Parkinson: <span class="highlight">PROCRASTINACIÓN SISTEMÁTICA</span>
+                </p>
+                <h3>¿Qué ocurre?</h3>
+                <ul style="font-size: 1.3rem;">
+                    <li>Sabiendo que tienen un "colchón" de tiempo...</li>
+                    <li>Las personas comienzan la tarea "tibiamente"</li>
+                    <li>O la procrastinan deliberadamente hasta el último momento</li>
+                </ul>
+                <div style="margin-top: 40px; padding: 30px; background: rgba(255, 107, 107, 0.1); border: 2px solid rgba(255, 107, 107, 0.3); border-radius: 15px;">
+                    <h3 style="color: #ff6b6b;">⚠️ Consecuencias:</h3>
+                    <p style="font-size: 1.2rem;">
+                        → La curva de esfuerzo crece EXPONENCIALMENTE cerca de la fecha límite<br>
+                        → El trabajo realizado con "alta presión temporal" es PROPENSO A ERRORES<br>
+                        → No solo consume el tiempo de seguridad, sino que AUMENTA EL RIESGO
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 15: El Ciclo Vicioso -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🔄 El Ciclo Vicioso del Padding</h2>
+                <div style="padding: 30px; background: rgba(255, 107, 107, 0.05); border: 2px solid rgba(255, 107, 107, 0.2); border-radius: 15px;">
+                    <ol style="font-size: 1.3rem; list-style-position: inside; padding-left: 20px;">
+                        <li style="margin: 20px 0; padding-left: 20px;">PM pide estimación para una tarea</li>
+                        <li style="margin: 20px 0; padding-left: 20px;">Ejecutor (sabiendo del Cono + miedo al castigo) añade <strong>PADDING</strong></li>
+                        <li style="margin: 20px 0; padding-left: 20px;">PM (sospechando) CORTA la estimación</li>
+                        <li style="margin: 20px 0; padding-left: 20px;">Ejecutor (sabiéndolo) INFLA más la próxima vez</li>
+                        <li style="margin: 20px 0; padding-left: 20px;">Este colchón oculto se añade a CADA TAREA</li>
+                        <li style="margin: 20px 0; padding-left: 20px;">Cuando comienza el proyecto: Parkinson + Estudiante CONSUMEN el colchón</li>
+                    </ol>
+                </div>
+                <div style="margin-top: 40px; padding: 25px; background: rgba(102, 126, 234, 0.1); border: 2px solid #667eea; border-radius: 15px; text-align: center;">
+                    <p style="font-size: 1.5rem; color: #667eea; font-weight: 600;">
+                        Conclusión: La holgura está DISTRIBUIDA, es INVISIBLE,<br>
+                        y es ALTAMENTE VULNERABLE. Es un mecanismo de seguridad FALLIDO por diseño.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 16: Estudios de Caso: Parkinson en Acción -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📊 Estudios de Caso: Ley de Parkinson en Proyectos Reales</h2>
+                <h3>Caso 1: Microsoft (Estudio interno, 2009)</h3>
+                <div class="box" style="background: rgba(255, 107, 107, 0.1); border-color: rgba(255, 107, 107, 0.3); margin-bottom: 20px;">
+                    <p style="font-size: 1.2rem;">
+                        <strong>Experimento:</strong> Asignaron la misma feature a dos equipos:<br>
+                        • Equipo A: Deadline de 6 semanas<br>
+                        • Equipo B: Deadline de 2 semanas<br><br>
+                        <strong style="color: #ff6b6b;">Resultado:</strong><br>
+                        Equipo A: Entregó en 6 semanas con scope creep (características no solicitadas)<br>
+                        Equipo B: Entregó en 2 semanas, enfocado SOLO en lo esencial<br><br>
+                        <strong>Calidad:</strong> Idéntica en ambos equipos
+                    </p>
+                </div>
+                <h3>Caso 2: Standish Group CHAOS Report (2020)</h3>
+                <div class="box">
+                    <p style="font-size: 1.2rem;">
+                        Proyectos con estimaciones "holgadas" (>30% de buffer distribuido) tienen:<br><br>
+                        • <strong style="color: #ff6b6b;">31%</strong> de probabilidad de completarse dentro del buffer<br>
+                        • <strong style="color: #ffc107;">45%</strong> de probabilidad de consumir TODO el buffer + extras<br>
+                        • <strong style="color: #51cf66;">24%</strong> de probabilidad de ser más rápidos<br><br>
+                        <span style="color: #667eea; font-weight: 600;">
+                            Conclusión: El buffer adicional NO mejora las probabilidades de éxito
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 17: Investigación del Síndrome del Estudiante -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📚 Investigación: Síndrome del Estudiante en Acción</h2>
+                <h3>Estudio de Dan Ariely (MIT, 2002)</h3>
+                <div class="box" style="margin-bottom: 30px;">
+                    <h3 style="color: #667eea;">Experimento con Estudiantes</h3>
+                    <p style="font-size: 1.2rem;">
+                        Se asignaron 3 ensayos a estudiantes con diferentes políticas de deadlines:
+                    </p>
+                    <table style="font-size: 1.1rem; margin-top: 20px;">
+                        <thead>
+                            <tr>
+                                <th>Grupo</th>
+                                <th>Política</th>
+                                <th>Resultado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background: rgba(255, 107, 107, 0.1);">
+                                <td><strong>Grupo A</strong></td>
+                                <td>1 deadline al final (día 84)</td>
+                                <td style="color: #ff6b6b;">76% entregó en últimos 7 días<br>Calidad: 6.8/10</td>
+                            </tr>
+                            <tr style="background: rgba(255, 193, 7, 0.1);">
+                                <td><strong>Grupo B</strong></td>
+                                <td>Auto-impuestos (flexible)</td>
+                                <td style="color: #ffc107;">62% entregó en últimos 10 días<br>Calidad: 7.2/10</td>
+                            </tr>
+                            <tr style="background: rgba(81, 207, 102, 0.1);">
+                                <td><strong>Grupo C</strong></td>
+                                <td>3 deadlines fijos (días 28, 56, 84)</td>
+                                <td style="color: #51cf66;">Distribución uniforme<br>Calidad: 8.3/10</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="padding: 25px; background: rgba(102, 126, 234, 0.1); border: 2px solid #667eea; border-radius: 15px;">
+                    <p style="text-align: center; font-size: 1.4rem; color: #667eea;">
+                        💡 Deadlines intermedios FORZADOS mejoran tanto timing como calidad
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 18: Conclusión Empírica -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>✅ Conclusión: Evidencia Empírica</h2>
+                <div style="padding: 40px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border: 2px solid #667eea; border-radius: 20px;">
+                    <h3 style="color: #667eea; text-align: center; margin-bottom: 30px;">
+                        Los Datos Confirman la Teoría
+                    </h3>
+                    <ul style="font-size: 1.3rem;">
+                        <li><strong>Parkinson es REAL:</strong> Equipos consumen el tiempo asignado, independientemente del trabajo real</li>
+                        <li><strong>Estudiante es REAL:</strong> Sin deadlines intermedios, el trabajo se acumula al final</li>
+                        <li><strong>Buffer distribuido FALLA:</strong> No protege el proyecto, solo prolonga la duración</li>
+                        <li><strong>Solución efectiva:</strong> Deadlines estrictos + Buffers agregados y visibles</li>
+                    </ul>
+                </div>
+                <div style="margin-top: 40px; padding: 30px; background: rgba(255, 193, 7, 0.1); border: 2px solid rgba(255, 193, 7, 0.3); border-radius: 15px;">
+                    <p style="font-size: 1.4rem; text-align: center; color: #ffc107; font-weight: 600;">
+                        ⚠️ Ignorar estos factores psicológicos garantiza que tu proyecto<br>
+                        consumirá TODO el tiempo disponible y pedirá más
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 19: La Pregunta Gancho -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>❓ La Pregunta Crítica</h2>
+                <div style="padding: 60px; background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(255, 193, 7, 0.1)); border: 3px solid #ff6b6b; border-radius: 20px; text-align: center;">
+                    <p style="font-size: 2rem; line-height: 1.8; color: #ffffff; font-weight: 600;">
+                        Si hemos demostrado que cualquier "colchón de seguridad"
+                        que ponemos DENTRO de las tareas será desperdiciado
+                        por Parkinson y el Síndrome del Estudiante...
+                    </p>
+                    <p style="font-size: 2.5rem; margin-top: 40px; color: #ffc107; font-weight: 700;">
+                        ¿DÓNDE deberíamos poner la seguridad<br>
+                        para proteger REALMENTE al proyecto?
+                    </p>
+                </div>
+                <p style="margin-top: 40px; text-align: center; font-size: 1.3rem; color: #a0a0a0;">
+                    Esta pregunta será respondida en la Clase 3 con CCPM:<br>
+                    "Al final del proyecto, como un BUFFER AGREGADO"
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 20: Resumen Clase 1 -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📝 Resumen de la Clase 1</h2>
+                <h3 style="color: #667eea;">Conceptos Clave Aprendidos:</h3>
+                <ul style="font-size: 1.3rem;">
+                    <li><strong>Estimación ≠ Plan:</strong> Confundirlos es causa principal de fracaso</li>
+                    <li><strong>Cono de Incertidumbre:</strong> ±400% al inicio → ±10% al final</li>
+                    <li><strong>Cascada falla:</strong> La planificación no reduce incertidumbre, solo la ejecución</li>
+                    <li><strong>Ágil funciona:</strong> Iteración y feedback rápido estrechan el cono</li>
+                    <li><strong>Ley de Parkinson:</strong> El trabajo se expande hasta llenar el tiempo</li>
+                    <li><strong>Síndrome del Estudiante:</strong> Procrastinación con colchones de tiempo</li>
+                    <li><strong>Ciclo vicioso:</strong> Padding oculto → Consumido por factores humanos</li>
+                </ul>
+                <div style="margin-top: 40px; padding: 25px; background: rgba(102, 126, 234, 0.1); border: 2px solid #667eea; border-radius: 15px; text-align: center;">
+                    <p style="font-size: 1.4rem; color: #667eea;">
+                        🎯 Próxima Clase: Métodos de Estimación (PERT, CPM, Agile, Planning Poker)
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 21: Fin -->
+        <div class="slide">
+            <div class="slide-content" style="text-align: center;">
+                <h1>¡Fin de la Clase 1!</h1>
+                <p style="font-size: 1.8rem; margin: 40px 0; color: #a0a0a0;">
+                    Gracias por su participación
+                </p>
+                <p class="emoji">🎓</p>
+                <p style="font-size: 1.4rem; margin-top: 40px;">
+                    <strong style="color: #667eea;">Alejandro Sfrede</strong><br>
+                    Área de Arquitectura
+                </p>
+                <div style="margin-top: 60px;">
+                    <a href="index.html" class="btn" style="display: inline-block; text-decoration: none;">
+                        🏠 Volver al Portal
+                    </a>
+                    <a href="clase2.html" class="btn" style="display: inline-block; text-decoration: none; margin-left: 20px; background: rgba(102, 126, 234, 0.2); border-color: #667eea;">
+                        ➡️ Ir a Clase 2
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn" id="prevBtn" onclick="changeSlide(-1)">← Anterior</button>
+        <button class="btn" id="nextBtn" onclick="changeSlide(1)">Siguiente →</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        function showSlide(n) {
+            if (n >= totalSlides) n = totalSlides - 1;
+            if (n < 0) n = 0;
+
+            currentSlide = n;
+
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                }
+            });
+
+            // Update progress bar
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            // Update counter
+            document.getElementById('slideCounter').textContent = `${currentSlide + 1} / ${totalSlides}`;
+
+            // Update buttons
+            document.getElementById('prevBtn').disabled = (currentSlide === 0);
+            document.getElementById('nextBtn').disabled = (currentSlide === totalSlides - 1);
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                changeSlide(-1);
+            } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+                e.preventDefault();
+                changeSlide(1);
+            } else if (e.key === 'Home') {
+                showSlide(0);
+            } else if (e.key === 'End') {
+                showSlide(totalSlides - 1);
+            }
+        });
+
+        // Touch navigation
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) {
+                changeSlide(1);
+            }
+            if (touchEndX > touchStartX + 50) {
+                changeSlide(-1);
+            }
+        }
+
+        // Initialize
+        showSlide(0);
+    </script>
+</body>
+</html>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curso de Estimación de Proyectos - Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .background-gradient {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0.1;
+        }
+
+        .animated-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -2;
+            overflow: hidden;
+        }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            animation: float 20s infinite;
+        }
+
+        .circle:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: 20%;
+            opacity: 0.1;
+            animation-duration: 25s;
+        }
+
+        .circle:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            top: 60%;
+            right: 10%;
+            opacity: 0.08;
+            animation-duration: 20s;
+            animation-delay: -5s;
+        }
+
+        .circle:nth-child(3) {
+            width: 250px;
+            height: 250px;
+            bottom: 10%;
+            left: 40%;
+            opacity: 0.12;
+            animation-duration: 30s;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .header .subtitle {
+            font-size: 1.5rem;
+            color: #a0a0a0;
+            font-weight: 300;
+        }
+
+        .instructor-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 50px;
+            text-align: center;
+            animation: fadeIn 1s ease-out 0.3s both;
+        }
+
+        .instructor-card h3 {
+            font-size: 1.8rem;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .instructor-card p {
+            font-size: 1.2rem;
+            color: #c0c0c0;
+        }
+
+        .classes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .class-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            animation: fadeInUp 1s ease-out both;
+        }
+
+        .class-card:nth-child(1) { animation-delay: 0.4s; }
+        .class-card:nth-child(2) { animation-delay: 0.6s; }
+        .class-card:nth-child(3) { animation-delay: 0.8s; }
+
+        .class-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2);
+        }
+
+        .class-number {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+
+        .class-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+
+        .class-description {
+            font-size: 1rem;
+            color: #b0b0b0;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .class-duration {
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            animation: fadeIn 1s ease-out 1s both;
+        }
+
+        .info-section h2 {
+            font-size: 2rem;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .info-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-section li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #c0c0c0;
+            line-height: 1.6;
+        }
+
+        .info-section li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .header .subtitle {
+                font-size: 1.2rem;
+            }
+
+            .classes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg">
+        <div class="circle"></div>
+        <div class="circle"></div>
+        <div class="circle"></div>
+    </div>
+    <div class="background-gradient"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>Curso de Estimación de Proyectos</h1>
+            <p class="subtitle">Aprende a estimar de forma real - 9 horas de formación</p>
+        </div>
+
+        <div class="instructor-card">
+            <h3>Alejandro Sfrede</h3>
+            <p>Área de Arquitectura</p>
+        </div>
+
+        <div class="classes-grid">
+            <a href="clase1.html" class="class-card">
+                <div class="class-number">01</div>
+                <div class="class-title">La Crisis de la Estimación</div>
+                <div class="class-description">
+                    Incertidumbre y Factores Humanos: Cono de Incertidumbre, Ley de Parkinson,
+                    Síndrome del Estudiante. Incluye talleres interactivos: Desafío del Malvavisco
+                    y demostración de Parkinson.
+                </div>
+                <div class="class-duration">⏱️ 3 horas</div>
+            </a>
+
+            <a href="clase2.html" class="class-card">
+                <div class="class-number">02</div>
+                <div class="class-title">Métodos de Estimación</div>
+                <div class="class-description">
+                    Tradicionales y Ágiles: PERT, CPM, T-Shirt Sizing, Story Points.
+                    Taller completo de Planning Poker con casos reales. Aprende cuándo usar cada método.
+                </div>
+                <div class="class-duration">⏱️ 3 horas</div>
+            </a>
+
+            <a href="clase3.html" class="class-card">
+                <div class="class-number">03</div>
+                <div class="class-title">Cadena Crítica (CCPM)</div>
+                <div class="class-description">
+                    La solución de Goldratt: Teoría de Restricciones, gestión de Buffers (Proyecto,
+                    Alimentación, Recursos). Caso práctico completo con cálculos y Gráfico de Fiebre.
+                </div>
+                <div class="class-duration">⏱️ 3 horas</div>
+            </a>
+        </div>
+
+        <div class="info-section">
+            <h2>🎯 Objetivos del Curso</h2>
+            <ul>
+                <li>Abandonar la estimación tradicional "inflada" (padding)</li>
+                <li>Comprender el Cono de Incertidumbre como modelo fundamental</li>
+                <li>Identificar factores psicológicos que destruyen cronogramas</li>
+                <li>Dominar estimación relativa (T-Shirt, Story Points, Planning Poker)</li>
+                <li>Aplicar CCPM para gestionar buffers estratégicamente</li>
+                <li>Estimar de forma real considerando riesgos, factores y componentes</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

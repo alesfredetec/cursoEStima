@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 2: Métodos de Estimación</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .background-gradient {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0.1;
+        }
+
+        .slide-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 40px 120px 40px;
+            position: relative;
+        }
+
+        .slide {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-content {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .slide-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .slide-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .slide-content::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 10px;
+        }
+
+        .slide-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.8);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 25px;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        p, li {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            color: #d0d0d0;
+            margin-bottom: 15px;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        li {
+            padding: 15px 0;
+            padding-left: 40px;
+            position: relative;
+        }
+
+        li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .formula {
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            text-align: center;
+            color: #667eea;
+        }
+
+        .highlight {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .instructor-info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px 20px;
+            font-size: 0.9rem;
+            color: #c0c0c0;
+            z-index: 100;
+        }
+
+        .instructor-info strong {
+            color: #667eea;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            z-index: 100;
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 30px;
+            right: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: #c0c0c0;
+            z-index: 100;
+        }
+
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(102, 126, 234, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .home-btn:hover {
+            background: rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 25px;
+        }
+
+        .three-column {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .box {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .workshop {
+            background: rgba(118, 75, 162, 0.1);
+            border: 2px solid rgba(118, 75, 162, 0.4);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 25px 0;
+        }
+
+        .workshop h3 {
+            color: #764ba2;
+            margin-bottom: 20px;
+        }
+
+        .emoji {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        td {
+            color: #d0d0d0;
+        }
+
+        .fibonacci {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .fib-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            border: 2px solid #667eea;
+            border-radius: 15px;
+            padding: 20px;
+            min-width: 80px;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .slide-container {
+                padding: 70px 20px 100px 20px;
+            }
+
+            .slide-content {
+                padding: 25px;
+                max-height: calc(100vh - 170px);
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            p, li {
+                font-size: 1.1rem;
+            }
+
+            .two-column, .three-column {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                bottom: 15px;
+            }
+
+            .slide-counter {
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-gradient"></div>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <div class="instructor-info">
+        <strong>Alejandro Sfrede</strong> - Área de Arquitectura
+    </div>
+
+    <a href="index.html" class="home-btn">🏠 Portal</a>
+
+    <div class="slide-counter" id="slideCounter">1 / 1</div>
+
+    <div class="slide-container">
+        <!-- Slide 1: Portada -->
+        <div class="slide active">
+            <div class="slide-content">
+                <h1>Clase 2:<br>Métodos de Estimación</h1>
+                <h2>Tradicionales y Ágiles</h2>
+                <p style="font-size: 1.5rem; margin-top: 40px;">
+                    <span class="highlight">Duración:</span> 3 horas<br>
+                    <span class="highlight">Objetivo:</span> Dominar métodos clásicos y ágiles de estimación
+                </p>
+                <p style="margin-top: 30px; font-size: 1.2rem; color: #a0a0a0;">
+                    Presiona → o ESPACIO para continuar
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 2: Agenda -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📋 Agenda de la Clase</h2>
+                <ul style="font-size: 1.4rem;">
+                    <li>Métodos Clásicos: PERT y CPM (45 min)</li>
+                    <li>Estimación Ágil: T-Shirt Sizing y Story Points (45 min)</li>
+                    <li>☕ Break (15 min)</li>
+                    <li>Planning Poker: Demostración y Análisis Detallado (60 min)</li>
+                    <li>Velocidad, Refinamiento Progresivo y Mejores Prácticas (30 min)</li>
+                    <li>Síntesis y Cuadro Comparativo (15 min)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 3: Intro PERT -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📊 PERT: Estimación de 3 Puntos</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    <strong>Program Evaluation and Review Technique</strong><br>
+                    Primer intento matemático de gestionar la incertidumbre de las tareas
+                </p>
+                <h3>Los 3 Puntos de Datos:</h3>
+                <div class="three-column">
+                    <div class="box" style="background: rgba(81, 207, 102, 0.1); border-color: rgba(81, 207, 102, 0.3);">
+                        <h3 style="color: #51cf66; text-align: center;">O</h3>
+                        <p style="text-align: center;"><strong>Optimista</strong></p>
+                        <p style="text-align: center; font-size: 1.1rem;">El mejor escenario posible</p>
+                    </div>
+                    <div class="box" style="background: rgba(255, 193, 7, 0.1); border-color: rgba(255, 193, 7, 0.3);">
+                        <h3 style="color: #ffc107; text-align: center;">M</h3>
+                        <p style="text-align: center;"><strong>Más Probable</strong></p>
+                        <p style="text-align: center; font-size: 1.1rem;">El escenario realista</p>
+                    </div>
+                    <div class="box" style="background: rgba(255, 107, 107, 0.1); border-color: rgba(255, 107, 107, 0.3);">
+                        <h3 style="color: #ff6b6b; text-align: center;">P</h3>
+                        <p style="text-align: center;"><strong>Pesimista</strong></p>
+                        <p style="text-align: center; font-size: 1.1rem;">El peor escenario ("Ley de Murphy")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Fórmulas PERT -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🧮 Fórmulas PERT</h2>
+                <h3>1. Duración Esperada</h3>
+                <p>Con los tres puntos, calculamos una media ponderada (distribución Beta):</p>
+                <div class="formula">
+                    Duración Esperada = (O + 4M + P) / 6
+                </div>
+                <p style="text-align: center; color: #a0a0a0; margin-bottom: 40px;">
+                    La fórmula da más peso (4x) a la estimación "Más Probable"
+                </p>
+
+                <h3>2. Desviación Estándar (Incertidumbre)</h3>
+                <p>Mide cuán incierta es la tarea:</p>
+                <div class="formula">
+                    SD = (P - O) / 6
+                </div>
+                <p style="text-align: center; color: #a0a0a0;">
+                    Un rango amplio (P - O) significa ALTA incertidumbre<br>
+                    Es, en efecto, una medida numérica del "Cono de Incertidumbre"
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 5: Ejemplo PERT -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>💡 Ejemplo Práctico PERT</h2>
+                <div class="box">
+                    <h3>Tarea: Migrar base de datos a la nube</h3>
+                    <div style="margin: 30px 0; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                        <p style="font-size: 1.4rem;">
+                            <strong style="color: #51cf66;">O (Optimista):</strong> 5 días<br>
+                            <strong style="color: #ffc107;">M (Más Probable):</strong> 10 días<br>
+                            <strong style="color: #ff6b6b;">P (Pesimista):</strong> 25 días
+                        </p>
+                    </div>
+                    <h3 style="margin-top: 30px;">Cálculos:</h3>
+                    <div class="formula" style="text-align: left; font-size: 1.3rem;">
+                        Duración Esperada = (5 + 4×10 + 25) / 6<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= (5 + 40 + 25) / 6<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 70 / 6 = 11.67 días ≈ 12 días
+                    </div>
+                    <div class="formula" style="text-align: left; font-size: 1.3rem;">
+                        SD = (25 - 5) / 6 = 20 / 6 = 3.33 días
+                    </div>
+                    <p style="margin-top: 20px; text-align: center; font-size: 1.2rem; color: #667eea;">
+                        📊 Estimación final: <strong>12 días ± 3.3 días</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: CPM Introducción -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🛤️ CPM: Critical Path Method</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Técnica que identifica la <span class="highlight">secuencia de tareas dependientes más larga</span><br>
+                    Esta secuencia determina la duración TOTAL del proyecto
+                </p>
+                <div class="two-column">
+                    <div class="box">
+                        <h3>Conceptos Clave</h3>
+                        <ul style="font-size: 1.2rem;">
+                            <li><strong>Ruta Crítica:</strong> Secuencia más larga</li>
+                            <li><strong>Holgura (Slack):</strong> Tiempo que una tarea NO crítica puede retrasarse</li>
+                            <li>Tareas críticas tienen holgura = 0</li>
+                        </ul>
+                    </div>
+                    <div class="box" style="background: rgba(255, 107, 107, 0.1); border-color: rgba(255, 107, 107, 0.3);">
+                        <h3 style="color: #ff6b6b;">⚠️ Defectos de CPM</h3>
+                        <ul style="font-size: 1.2rem;">
+                            <li>La holgura es vulnerable a Parkinson</li>
+                            <li>Asume recursos ILIMITADOS</li>
+                            <li>Ignora cuellos de botella de recursos</li>
+                        </ul>
+                    </div>
+                </div>
+                <p style="margin-top: 30px; text-align: center; font-size: 1.3rem; color: #a0a0a0;">
+                    CPM es matemáticamente correcto, pero psicológicamente ingenuo
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 7: Estimación Ágil Intro -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🚀 Estimación Ágil: El Cambio de Paradigma</h2>
+                <div style="padding: 40px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border: 2px solid #667eea; border-radius: 20px;">
+                    <h3 style="text-align: center; color: #667eea;">Del Tiempo Absoluto al Tamaño Relativo</h3>
+                    <div class="two-column" style="margin-top: 30px;">
+                        <div>
+                            <h3 style="color: #ff6b6b;">❌ Estimación Absoluta</h3>
+                            <p>Unidades de <strong>tiempo</strong> (horas, días)</p>
+                            <ul style="font-size: 1.1rem;">
+                                <li>Extremadamente difícil</li>
+                                <li>Propenso a errores</li>
+                                <li>Consume mucho tiempo</li>
+                                <li>Fomenta el conflicto (padding)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 style="color: #51cf66;">✅ Estimación Relativa</h3>
+                            <p>Estimar el <strong>tamaño</strong> comparando con otras tareas</p>
+                            <ul style="font-size: 1.1rem;">
+                                <li>Más intuitivo</li>
+                                <li>Menos propenso a errores</li>
+                                <li>Rápido</li>
+                                <li>Reduce conflictos</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <p style="margin-top: 30px; text-align: center; font-size: 1.3rem;">
+                    "Esta tarea (B) es <strong>el doble de grande</strong> que aquella (A)"
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 8: T-Shirt Sizing -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>👕 Técnica 1: T-Shirt Sizing</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Método rápido de estimación relativa de alto nivel
+                </p>
+                <div class="fibonacci" style="justify-content: space-between;">
+                    <div class="fib-card" style="min-width: 100px; font-size: 1.2rem;">XS</div>
+                    <div class="fib-card" style="min-width: 100px; font-size: 1.4rem;">S</div>
+                    <div class="fib-card" style="min-width: 100px; font-size: 1.6rem;">M</div>
+                    <div class="fib-card" style="min-width: 100px; font-size: 1.8rem;">L</div>
+                    <div class="fib-card" style="min-width: 100px; font-size: 2rem;">XL</div>
+                    <div class="fib-card" style="min-width: 100px; font-size: 2.2rem;">XXL</div>
+                </div>
+                <h3 style="margin-top: 30px;">Características:</h3>
+                <ul style="font-size: 1.3rem;">
+                    <li><strong>Uso común:</strong> Roadmaps trimestrales, estimación de Epics</li>
+                    <li><strong>Ventaja:</strong> Rápido e intuitivo para todos</li>
+                    <li><strong>Multidimensional:</strong> Combina alcance, esfuerzo, complejidad y tiempo</li>
+                    <li><strong>Objetivo:</strong> Obtener "rango de magnitud" sin debates numéricos</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 9: Story Points -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🔢 Técnica 2: Story Points</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    La unidad de estimación relativa más común en <strong>Scrum</strong>
+                </p>
+                <div class="box">
+                    <h3>¿Qué es un Story Point?</h3>
+                    <p style="font-size: 1.2rem;">Un número abstracto que combina:</p>
+                    <div class="three-column" style="margin-top: 20px;">
+                        <div style="text-align: center;">
+                            <p class="emoji" style="font-size: 2rem;">💪</p>
+                            <p><strong>Esfuerzo</strong></p>
+                            <p style="font-size: 1rem;">Cuánto trabajo</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <p class="emoji" style="font-size: 2rem;">🧩</p>
+                            <p><strong>Complejidad</strong></p>
+                            <p style="font-size: 1rem;">Cuán difícil</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <p class="emoji" style="font-size: 2rem;">❓</p>
+                            <p><strong>Incertidumbre</strong></p>
+                            <p style="font-size: 1rem;">Cuántas incógnitas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Fibonacci -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🌀 La Secuencia de Fibonacci</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Story Points NO usan escala lineal. Usan Fibonacci:
+                </p>
+                <div class="fibonacci">
+                    <div class="fib-card">0</div>
+                    <div class="fib-card">1</div>
+                    <div class="fib-card">2</div>
+                    <div class="fib-card">3</div>
+                    <div class="fib-card">5</div>
+                    <div class="fib-card">8</div>
+                    <div class="fib-card">13</div>
+                    <div class="fib-card">21</div>
+                </div>
+                <div style="margin-top: 40px; padding: 30px; background: rgba(102, 126, 234, 0.1); border: 2px solid #667eea; border-radius: 15px;">
+                    <h3 style="color: #667eea;">¿Por qué Fibonacci y no 1,2,3,4,5...?</h3>
+                    <ul style="font-size: 1.2rem;">
+                        <li>La escala nos <strong>obliga a reconocer la incertidumbre</strong></li>
+                        <li>Diferencia entre 1 y 2 es pequeña (certeza alta)</li>
+                        <li>Diferencia entre 13 y 21 es ENORME (incertidumbre alta)</li>
+                        <li>Si dudas entre 13 y 21, estás admitiendo ALTA incertidumbre</li>
+                        <li>Captura la esencia del Cono: A mayor tamaño, menor certeza</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Break -->
+        <div class="slide">
+            <div class="slide-content" style="text-align: center;">
+                <p class="emoji">☕</p>
+                <h2>Break - 15 minutos</h2>
+                <p style="font-size: 1.4rem; margin-top: 30px; color: #a0a0a0;">
+                    Próximo: Taller de Planning Poker (90 minutos)
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 12: Planning Poker Intro -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🎴 Planning Poker</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Método de <span class="highlight">consenso colaborativo</span> para asignar Story Points
+                </p>
+                <div class="box" style="background: rgba(118, 75, 162, 0.1); border-color: rgba(118, 75, 162, 0.3);">
+                    <p class="emoji" style="text-align: center;">🎯</p>
+                    <h3 style="color: #764ba2; text-align: center;">Objetivo Central</h3>
+                    <p style="font-size: 1.3rem; text-align: center;">
+                        El objetivo NO es obtener un número exacto.<br>
+                        Es generar <strong>CONSENSO</strong> basado en <strong>DISCUSIÓN</strong>
+                        y exposición de <strong>SUPOSICIONES OCULTAS</strong>
+                    </p>
+                </div>
+                <h3 style="margin-top: 30px;">Elementos Clave del Proceso:</h3>
+                <ul style="font-size: 1.3rem;">
+                    <li>Votación <strong>simultánea y anónima</strong> (evita anclaje)</li>
+                    <li>Discusión de <strong>estimaciones extremas</strong> (identificación de riesgos)</li>
+                    <li>Re-votación tras aprendizaje colectivo</li>
+                    <li>Cartas con secuencia Fibonacci (refleja incertidumbre)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 13: Caso de Estudio - Backlog -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📋 Caso de Estudio: Backlog de Autenticación</h2>
+                <p style="font-size: 1.3rem; margin-bottom: 20px;">
+                    Vamos a analizar cómo un equipo real estima estas historias de usuario:
+                </p>
+                <table style="font-size: 1rem;">
+                    <thead>
+                        <tr>
+                            <th style="width: 10%;">ID</th>
+                            <th>Historia de Usuario</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>HU-1</strong></td>
+                            <td><em>Como usuario nuevo, quiero poder registrarme con mi email y contraseña, para poder acceder al sistema.</em></td>
+                        </tr>
+                        <tr style="background: rgba(81, 207, 102, 0.1);">
+                            <td><strong>HU-2</strong></td>
+                            <td><em>Como usuario registrado, quiero poder iniciar sesión, para ver mi panel de control.</em> <span style="color: #51cf66;">← Referencia: 3 puntos</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>HU-3</strong></td>
+                            <td><em>Como usuario que olvidó su contraseña, quiero poder solicitar un enlace de reseteo por email, para recuperar el acceso.</em></td>
+                        </tr>
+                        <tr>
+                            <td><strong>HU-4</strong></td>
+                            <td><em>Como administrador, quiero un reporte de todos los usuarios registrados en el último mes, para analizar el crecimiento.</em></td>
+                        </tr>
+                        <tr>
+                            <td><strong>HU-5</strong></td>
+                            <td><em>Como usuario, quiero poder pagar mi suscripción con tarjeta de crédito, para acceder al contenido premium.</em></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="margin-top: 20px; text-align: center; font-size: 1.2rem; color: #667eea;">
+                    HU-2 (Login) ya fue completada en sprint anterior → sirve como <strong>línea base</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 14: Proceso Planning Poker -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🎯 Proceso de Planning Poker (Paso a Paso)</h2>
+                <div class="box" style="padding: 30px;">
+                    <h3 style="color: #667eea;">1. Establecer Línea Base</h3>
+                    <p>Product Owner presenta HU-2 (Login). Todos acuerdan: "Esto es un <strong>3</strong>"</p>
+                </div>
+                <div class="box" style="padding: 30px; margin-top: 20px;">
+                    <h3 style="color: #667eea;">2. Presentar Historia</h3>
+                    <p>PO lee HU-3 (Reseteo de Contraseña) y explica el objetivo</p>
+                </div>
+                <div class="box" style="padding: 30px; margin-top: 20px;">
+                    <h3 style="color: #667eea;">3. Clarificar Dudas</h3>
+                    <p>Equipo hace preguntas: "¿El enlace caduca?" "¿Se valida el email?"</p>
+                </div>
+                <div class="box" style="padding: 30px; margin-top: 20px;">
+                    <h3 style="color: #667eea;">4. Votar Simultáneamente</h3>
+                    <p>Facilitador: "1, 2, 3... ¡Voten!" Todos eligen carta y ponen boca abajo</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 15: El Corazón del Taller -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>💬 La Discusión: El Corazón del Taller</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Todos revelan cartas <strong>SIMULTÁNEAMENTE</strong>: 3, 5, 5, 8, 13
+                </p>
+                <div class="workshop">
+                    <h3>Facilitador NO promedia. Pide a los EXTREMOS que justifiquen:</h3>
+                    <div style="margin-top: 30px; padding: 25px; background: rgba(255, 107, 107, 0.1); border: 2px solid rgba(255, 107, 107, 0.3); border-radius: 10px;">
+                        <p style="font-size: 1.2rem;">
+                            <strong style="color: #ff6b6b;">Facilitador al que votó 13:</strong><br>
+                            "¿Qué riesgo o complejidad ve que los demás no vieron?"
+                        </p>
+                        <p style="margin-top: 20px; font-size: 1.1rem; font-style: italic;">
+                            "Esto implica enviar email, generar token único, almacenar token,
+                            validar expiración, construir página de reseteo. <strong>Hay mucha incertidumbre.</strong>"
+                        </p>
+                    </div>
+                    <div style="margin-top: 20px; padding: 25px; background: rgba(81, 207, 102, 0.1); border: 2px solid rgba(81, 207, 102, 0.3); border-radius: 10px;">
+                        <p style="font-size: 1.2rem;">
+                            <strong style="color: #51cf66;">Facilitador al que votó 3:</strong><br>
+                            "¿Por qué piensa que es igual de simple que el login?"
+                        </p>
+                        <p style="margin-top: 20px; font-size: 1.1rem; font-style: italic;">
+                            "Ah, no había pensado en la generación del token ni en el servicio de email.
+                            Solo pensé en el formulario."
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 16: Re-votación -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🔄 Re-votación y Consenso</h2>
+                <div style="padding: 40px; background: rgba(102, 126, 234, 0.1); border: 2px solid #667eea; border-radius: 20px;">
+                    <p style="font-size: 1.5rem; text-align: center; margin-bottom: 30px;">
+                        "OK, hemos <strong>APRENDIDO</strong> algo. Volvamos a votar."
+                    </p>
+                    <div class="two-column">
+                        <div>
+                            <h3 style="color: #667eea; text-align: center;">Primera Votación</h3>
+                            <p style="text-align: center; font-size: 2rem; margin: 20px 0;">3, 5, 5, 8, 13</p>
+                            <p style="text-align: center; color: #ff6b6b;">Sin consenso</p>
+                        </div>
+                        <div>
+                            <h3 style="color: #667eea; text-align: center;">Segunda Votación</h3>
+                            <p style="text-align: center; font-size: 2rem; margin: 20px 0;">8, 5, 8, 8, 5</p>
+                            <p style="text-align: center; color: #51cf66;">Convergiendo...</p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 40px; padding: 25px; background: rgba(81, 207, 102, 0.1); border-radius: 10px; text-align: center;">
+                        <p style="font-size: 1.8rem; color: #51cf66; font-weight: 600;">
+                            ✅ Tras breve discusión final: Todos acuerdan un <strong>8</strong>
+                        </p>
+                    </div>
+                </div>
+                <p style="margin-top: 30px; text-align: center; font-size: 1.3rem; color: #a0a0a0;">
+                    Se asigna 8 a HU-3 y se pasa a la siguiente historia
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 17: Debriefing Planning Poker -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>💡 Debriefing: Lecciones del Planning Poker</h2>
+                <div style="padding: 40px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border: 2px solid #667eea; border-radius: 20px;">
+                    <h3 style="color: #667eea; text-align: center; margin-bottom: 30px;">
+                        El objetivo NO era el número (el 8)
+                    </h3>
+                    <h3 style="text-align: center; font-size: 2rem; color: #ffffff;">
+                        Era la CONVERSACIÓN que ocurrió entre el 13 y el 3
+                    </h3>
+                </div>
+                <h3 style="margin-top: 40px;">¿Por qué funciona Planning Poker?</h3>
+                <ul style="font-size: 1.3rem;">
+                    <li><strong>Votación anónima y simultánea:</strong> Previene anclaje (junior no copia a senior)</li>
+                    <li><strong>Exposición de suposiciones:</strong> El "13" vio el riesgo del token que otros no vieron</li>
+                    <li><strong>Identificación temprana de riesgos:</strong> Descubrimos complejidades ocultas</li>
+                    <li><strong>Construcción de consenso:</strong> Todo el equipo entiende y acuerda</li>
+                    <li><strong>Aprendizaje colectivo:</strong> El conocimiento se distribuye</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 18: Velocidad -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📈 Velocidad: De Points a Forecasting</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Una vez que el equipo estima en Story Points, puede calcular su <span class="highlight">VELOCIDAD</span>
+                </p>
+                <div class="box">
+                    <h3>¿Qué es Velocidad?</h3>
+                    <p style="font-size: 1.3rem;">
+                        Cantidad de Story Points que el equipo completa <strong>por Sprint</strong>
+                    </p>
+                    <div style="margin: 30px 0; padding: 25px; background: rgba(102, 126, 234, 0.1); border-radius: 10px;">
+                        <p style="text-align: center; font-size: 1.5rem;">
+                            <strong>Ejemplo:</strong><br>
+                            Sprint 1: 23 puntos completados<br>
+                            Sprint 2: 27 puntos completados<br>
+                            Sprint 3: 25 puntos completados<br><br>
+                            <span style="color: #667eea; font-size: 1.8rem;">Velocidad promedio = 25 puntos/sprint</span>
+                        </p>
+                    </div>
+                    <h3>¿Para qué sirve?</h3>
+                    <ul style="font-size: 1.2rem;">
+                        <li><strong>Forecasting:</strong> "Tenemos 150 puntos en backlog → 6 sprints"</li>
+                        <li><strong>Compromiso realista:</strong> Solo comprometer lo que históricamente completan</li>
+                        <li><strong>Mejora continua:</strong> Identificar si la velocidad mejora o empeora</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 19: Flujo de Refinamiento -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🔄 Flujo de Refinamiento Progresivo</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Una práctica experta combina T-Shirt Sizing y Story Points:
+                </p>
+                <div style="padding: 30px; background: rgba(255, 255, 255, 0.03); border: 2px solid rgba(102, 126, 234, 0.3); border-radius: 15px;">
+                    <div class="box" style="background: rgba(81, 207, 102, 0.1); border-color: rgba(81, 207, 102, 0.3); margin-bottom: 20px;">
+                        <h3 style="color: #51cf66;">1. Fase Roadmap (Trimestral)</h3>
+                        <p style="font-size: 1.2rem;">
+                            Estimar grandes <strong>Epics</strong> con <strong>T-Shirt Sizing</strong>
+                        </p>
+                        <p style="font-style: italic; color: #a0a0a0;">
+                            Ejemplo: "Migrar base de datos a Azure SQL" → Esto es un "Large"
+                        </p>
+                    </div>
+                    <div class="box" style="background: rgba(102, 126, 234, 0.1); margin-bottom: 20px;">
+                        <h3 style="color: #667eea;">2. Fase Sprint Planning (Quincenal)</h3>
+                        <p style="font-size: 1.2rem;">
+                            Desglosa r Epic "L" en <strong>User Stories</strong> más pequeñas
+                        </p>
+                        <p style="font-style: italic; color: #a0a0a0;">
+                            "Configurar servidor" (5), "Migrar esquema" (8), "Validar datos" (3)
+                        </p>
+                        <p style="font-size: 1.2rem; margin-top: 15px;">
+                            Estimar con <strong>Story Points</strong> y <strong>Planning Poker</strong>
+                        </p>
+                    </div>
+                </div>
+                <p style="margin-top: 30px; text-align: center; font-size: 1.3rem; color: #51cf66;">
+                    ✅ Esto es refinamiento progresivo: De lo general a lo específico
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 20: Tabla Comparativa -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📊 Cuadro Comparativo de Métodos</h2>
+                <table style="font-size: 1.1rem;">
+                    <thead>
+                        <tr>
+                            <th>Método</th>
+                            <th>Escala</th>
+                            <th>Uso Principal</th>
+                            <th>Ventaja Clave</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>PERT</strong></td>
+                            <td>3 puntos (O,M,P)</td>
+                            <td>Tareas individuales con incertidumbre</td>
+                            <td>Cuantifica incertidumbre (SD)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>CPM</strong></td>
+                            <td>Días fijos</td>
+                            <td>Identificar ruta crítica</td>
+                            <td>Determina duración total</td>
+                        </tr>
+                        <tr>
+                            <td><strong>T-Shirt</strong></td>
+                            <td>XS, S, M, L, XL</td>
+                            <td>Roadmaps, Epics</td>
+                            <td>Rápido, intuitivo</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Story Points</strong></td>
+                            <td>Fibonacci</td>
+                            <td>Sprints, Velocidad</td>
+                            <td>Precisión relativa</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Planning Poker</strong></td>
+                            <td>N/A (proceso)</td>
+                            <td>Consenso de equipo</td>
+                            <td>Expone suposiciones</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Slide 21: ¿Cuándo usar qué? -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🤔 ¿Cuándo Usar Cada Método?</h2>
+                <div class="box" style="background: rgba(81, 207, 102, 0.1); border-color: rgba(81, 207, 102, 0.3); margin-bottom: 20px;">
+                    <h3 style="color: #51cf66;">PERT / CPM</h3>
+                    <ul style="font-size: 1.2rem;">
+                        <li><strong>Construcción, Ingeniería:</strong> Proyectos predecibles con tareas claras</li>
+                        <li><strong>Cuándo:</strong> Alcance bien definido, pocas restricciones de recursos</li>
+                        <li><strong>Ventaja:</strong> Cálculos precisos, ruta crítica clara</li>
+                    </ul>
+                </div>
+                <div class="box" style="background: rgba(102, 126, 234, 0.1); margin-bottom: 20px;">
+                    <h3 style="color: #667eea;">Agile (T-Shirt + Story Points + Poker)</h3>
+                    <ul style="font-size: 1.2rem;">
+                        <li><strong>Software, I+D, Innovación:</strong> Requisitos emergentes o cambiantes</li>
+                        <li><strong>Cuándo:</strong> Alta incertidumbre en el QUÉ construir, necesidad de feedback</li>
+                        <li><strong>Ventaja:</strong> Adaptabilidad, aprendizaje continuo, consenso de equipo</li>
+                    </ul>
+                </div>
+                <p style="margin-top: 30px; text-align: center; font-size: 1.4rem; color: #a0a0a0;">
+                    💡 Próxima clase: ¿Qué método gestiona mejor los <strong>RECURSOS</strong> y el <strong>RIESGO</strong>?
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 22: Gancho Clase 3 -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>❓ La Pregunta Crítica (Reprise)</h2>
+                <div style="padding: 60px; background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(255, 193, 7, 0.1)); border: 3px solid #ff6b6b; border-radius: 20px; text-align: center;">
+                    <p style="font-size: 1.8rem; line-height: 1.8; color: #ffffff;">
+                        Recordamos de la Clase 1:
+                    </p>
+                    <p style="font-size: 2.5rem; margin-top: 30px; color: #ffc107; font-weight: 700;">
+                        ¿DÓNDE ponemos la seguridad<br>
+                        para proteger REALMENTE al proyecto?
+                    </p>
+                </div>
+                <div style="margin-top: 40px; padding: 30px; background: rgba(102, 126, 234, 0.1); border: 2px solid #667eea; border-radius: 15px;">
+                    <p style="font-size: 1.5rem; text-align: center;">
+                        CPM la pone en <span class="highlight">HOLGURA distribuida</span> (vulnerable)<br><br>
+                        Agile la maneja con <span class="highlight">ITERACIÓN</span> (re-planificación)<br><br>
+                        <strong style="color: #667eea; font-size: 1.8rem;">
+                            CCPM tiene una respuesta diferente: BUFFERS AGREGADOS
+                        </strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 23: Resumen Clase 2 -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📝 Resumen de la Clase 2</h2>
+                <h3 style="color: #667eea;">Métodos Aprendidos:</h3>
+                <ul style="font-size: 1.3rem;">
+                    <li><strong>PERT (3 puntos):</strong> Duración Esperada = (O+4M+P)/6, SD = (P-O)/6</li>
+                    <li><strong>CPM:</strong> Ruta crítica, holgura, pero ignora recursos y factores humanos</li>
+                    <li><strong>T-Shirt Sizing:</strong> XS a XXL para roadmaps y epics (rápido, intuitivo)</li>
+                    <li><strong>Story Points:</strong> Fibonacci (0,1,2,3,5,8,13,21) = Esfuerzo + Complejidad + Incertidumbre</li>
+                    <li><strong>Planning Poker:</strong> Consenso colaborativo, votación anónima, discusión de extremos</li>
+                    <li><strong>Velocidad:</strong> Puntos/sprint para forecasting</li>
+                    <li><strong>Flujo de Refinamiento:</strong> T-Shirt (trimestre) → Story Points (sprint)</li>
+                </ul>
+                <div style="margin-top: 40px; padding: 25px; background: rgba(118, 75, 162, 0.1); border: 2px solid #764ba2; border-radius: 15px; text-align: center;">
+                    <p style="font-size: 1.4rem; color: #764ba2;">
+                        🎯 Próxima Clase: Cadena Crítica (CCPM) - La solución de Goldratt
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 24: Fin -->
+        <div class="slide">
+            <div class="slide-content" style="text-align: center;">
+                <h1>¡Fin de la Clase 2!</h1>
+                <p style="font-size: 1.8rem; margin: 40px 0; color: #a0a0a0;">
+                    Gracias por su participación activa en Planning Poker
+                </p>
+                <p class="emoji">🎓</p>
+                <p style="font-size: 1.4rem; margin-top: 40px;">
+                    <strong style="color: #667eea;">Alejandro Sfrede</strong><br>
+                    Área de Arquitectura
+                </p>
+                <div style="margin-top: 60px;">
+                    <a href="clase1.html" class="btn" style="display: inline-block; text-decoration: none; margin-right: 10px;">
+                        ← Clase 1
+                    </a>
+                    <a href="index.html" class="btn" style="display: inline-block; text-decoration: none; margin: 0 10px;">
+                        🏠 Portal
+                    </a>
+                    <a href="clase3.html" class="btn" style="display: inline-block; text-decoration: none; margin-left: 10px; background: rgba(102, 126, 234, 0.2); border-color: #667eea;">
+                        Clase 3 →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn" id="prevBtn" onclick="changeSlide(-1)">← Anterior</button>
+        <button class="btn" id="nextBtn" onclick="changeSlide(1)">Siguiente →</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        function showSlide(n) {
+            if (n >= totalSlides) n = totalSlides - 1;
+            if (n < 0) n = 0;
+
+            currentSlide = n;
+
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                }
+            });
+
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            document.getElementById('slideCounter').textContent = `${currentSlide + 1} / ${totalSlides}`;
+
+            document.getElementById('prevBtn').disabled = (currentSlide === 0);
+            document.getElementById('nextBtn').disabled = (currentSlide === totalSlides - 1);
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                changeSlide(-1);
+            } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+                e.preventDefault();
+                changeSlide(1);
+            } else if (e.key === 'Home') {
+                showSlide(0);
+            } else if (e.key === 'End') {
+                showSlide(totalSlides - 1);
+            }
+        });
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) {
+                changeSlide(1);
+            }
+            if (touchEndX > touchStartX + 50) {
+                changeSlide(-1);
+            }
+        }
+
+        showSlide(0);
+    </script>
+</body>
+</html>

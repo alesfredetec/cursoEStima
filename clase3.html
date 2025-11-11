@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 3: Cadena Crítica (CCPM)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .background-gradient {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0.1;
+        }
+
+        .slide-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 40px 120px 40px;
+            position: relative;
+        }
+
+        .slide {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-content {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .slide-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .slide-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .slide-content::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 10px;
+        }
+
+        .slide-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.8);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 25px;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        p, li {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            color: #d0d0d0;
+            margin-bottom: 15px;
+        }
+
+        ul, ol {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        li {
+            padding: 15px 0;
+            padding-left: 40px;
+            position: relative;
+        }
+
+        ul li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        ol {
+            counter-reset: item;
+        }
+
+        ol li {
+            counter-increment: item;
+        }
+
+        ol li:before {
+            content: counter(item) ".";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+
+        .formula {
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            text-align: center;
+            color: #667eea;
+        }
+
+        .highlight {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .instructor-info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px 20px;
+            font-size: 0.9rem;
+            color: #c0c0c0;
+            z-index: 100;
+        }
+
+        .instructor-info strong {
+            color: #667eea;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            z-index: 100;
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 30px;
+            right: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: #c0c0c0;
+            z-index: 100;
+        }
+
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(102, 126, 234, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .home-btn:hover {
+            background: rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 25px;
+        }
+
+        .box {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .workshop {
+            background: rgba(118, 75, 162, 0.1);
+            border: 2px solid rgba(118, 75, 162, 0.4);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 25px 0;
+        }
+
+        .workshop h3 {
+            color: #764ba2;
+            margin-bottom: 20px;
+        }
+
+        .emoji {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        td {
+            color: #d0d0d0;
+        }
+
+        .diagram {
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .task-box {
+            display: inline-block;
+            background: rgba(102, 126, 234, 0.2);
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 15px 25px;
+            margin: 10px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .buffer-box {
+            display: inline-block;
+            background: rgba(81, 207, 102, 0.2);
+            border: 2px solid #51cf66;
+            border-radius: 10px;
+            padding: 15px 25px;
+            margin: 10px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #51cf66;
+        }
+
+        .arrow {
+            display: inline-block;
+            color: #764ba2;
+            font-size: 2rem;
+            margin: 0 10px;
+        }
+
+        @media (max-width: 768px) {
+            .slide-container {
+                padding: 70px 20px 100px 20px;
+            }
+
+            .slide-content {
+                padding: 25px;
+                max-height: calc(100vh - 170px);
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            p, li {
+                font-size: 1.1rem;
+            }
+
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                bottom: 15px;
+            }
+
+            .slide-counter {
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-gradient"></div>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <div class="instructor-info">
+        <strong>Alejandro Sfrede</strong> - Área de Arquitectura
+    </div>
+
+    <a href="index.html" class="home-btn">🏠 Portal</a>
+
+    <div class="slide-counter" id="slideCounter">1 / 1</div>
+
+    <div class="slide-container">
+        <!-- Slide 1: Portada -->
+        <div class="slide active">
+            <div class="slide-content">
+                <h1>Clase 3:<br>Cadena Crítica (CCPM)</h1>
+                <h2>La Solución de Goldratt</h2>
+                <p style="font-size: 1.5rem; margin-top: 40px;">
+                    <span class="highlight">Duración:</span> 3 horas<br>
+                    <span class="highlight">Objetivo:</span> Dominar la gestión de buffers y resolver el problema de la seguridad
+                </p>
+                <p style="margin-top: 30px; font-size: 1.2rem; color: #a0a0a0;">
+                    Presiona → o ESPACIO para continuar
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 2: Agenda -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📋 Agenda de la Clase</h2>
+                <ul style="font-size: 1.4rem;">
+                    <li>Introducción a CCPM y Teoría de Restricciones (45 min)</li>
+                    <li>Gestión de Buffers: Proyecto, Alimentación, Recursos (45 min)</li>
+                    <li>☕ Break (15 min)</li>
+                    <li>🎮 Taller: Caso de Estudio CCPM Completo (75 min)</li>
+                    <li>Síntesis Final y Cuadro Comparativo (15 min)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 3: Eliyahu Goldratt -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>👨‍🏫 Eliyahu M. Goldratt</h2>
+                <div class="box">
+                    <p style="font-size: 1.4rem;">
+                        <strong>1947-2011 | Físico israelí, consultor empresarial, autor</strong>
+                    </p>
+                    <div style="margin: 30px 0;">
+                        <p style="font-size: 1.3rem;">
+                            Creador de la <span class="highlight">Teoría de Restricciones (Theory of Constraints - TOC)</span>
+                        </p>
+                        <p style="font-size: 1.2rem; margin-top: 20px; color: #a0a0a0;">
+                            Autor de "The Goal" (1984) y "Critical Chain" (1997)
+                        </p>
+                    </div>
+                </div>
+                <div style="margin-top: 30px; padding: 30px; background: rgba(102, 126, 234, 0.1); border: 2px solid #667eea; border-radius: 15px;">
+                    <h3 style="color: #667eea; text-align: center;">Premisa Fundamental de TOC</h3>
+                    <p style="text-align: center; font-size: 1.8rem; line-height: 1.8;">
+                        "Una cadena no es más fuerte que su eslabón más débil"
+                    </p>
+                    <p style="text-align: center; font-size: 1.3rem; margin-top: 20px; color: #a0a0a0;">
+                        Todo sistema tiene una RESTRICCIÓN que limita su rendimiento.<br>
+                        Gestionar esa restricción es la clave para mejorar el sistema completo.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: El Problema que Goldratt Vio -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>❌ El Problema que Goldratt Identificó en CPM</h2>
+                <div style="padding: 40px; background: rgba(255, 107, 107, 0.1); border: 2px solid rgba(255, 107, 107, 0.3); border-radius: 15px;">
+                    <h3 style="color: #ff6b6b;">CPM (Critical Path Method) asume RECURSOS ILIMITADOS</h3>
+                    <p style="font-size: 1.3rem; margin-top: 20px;">
+                        CPM identifica la "Ruta Crítica" basada solo en la <strong>secuencia de tareas</strong>,
+                        ignorando completamente los <strong>cuellos de botella de recursos</strong>.
+                    </p>
+                </div>
+                <h3 style="margin-top: 40px;">Ejemplo:</h3>
+                <div class="box">
+                    <p style="font-size: 1.2rem;">
+                        Proyecto con 2 rutas paralelas:<br><br>
+                        <strong>Ruta A:</strong> 10 días (5 tareas × 2 días cada una)<br>
+                        <strong>Ruta B:</strong> 15 días (3 tareas × 5 días cada una)<br><br>
+                        <span style="color: #ff6b6b;">CPM dice:</span> Ruta Crítica = B (15 días)<br>
+                        <span style="color: #51cf66;">Realidad:</span> Si Ana hace TODAS las tareas de ambas rutas,
+                        la duración real es 25 días (10+15), ¡NO 15!
+                    </p>
+                </div>
+                <p style="margin-top: 30px; text-align: center; font-size: 1.4rem; color: #667eea;">
+                    Goldratt identificó que CPM es matemáticamente correcto pero <strong>operativamente ingenuo</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 5: Cadena Crítica vs Ruta Crítica -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🔗 Cadena Crítica vs Ruta Crítica</h2>
+                <div class="two-column">
+                    <div class="box" style="background: rgba(255, 107, 107, 0.1); border-color: rgba(255, 107, 107, 0.3);">
+                        <h3 style="color: #ff6b6b;">Ruta Crítica (CPM)</h3>
+                        <p style="font-size: 1.2rem;">
+                            Secuencia de tareas <strong>dependientes</strong> más larga,
+                            basada SOLO en la lógica de precedencias
+                        </p>
+                        <ul style="font-size: 1.1rem; margin-top: 20px;">
+                            <li>Ignora recursos</li>
+                            <li>Asume multitarea perfecta</li>
+                            <li>Holgura distribuida (vulnerable)</li>
+                        </ul>
+                    </div>
+                    <div class="box" style="background: rgba(81, 207, 102, 0.1); border-color: rgba(81, 207, 102, 0.3);">
+                        <h3 style="color: #51cf66;">Cadena Crítica (CCPM)</h3>
+                        <p style="font-size: 1.2rem;">
+                            Secuencia más larga considerando TANTO tareas COMO <strong>recursos</strong>
+                        </p>
+                        <ul style="font-size: 1.1rem; margin-top: 20px;">
+                            <li>Incorpora restricciones de recursos</li>
+                            <li>Elimina multitarea mala</li>
+                            <li>Buffers agregados (visibles, gestionables)</li>
+                        </ul>
+                    </div>
+                </div>
+                <div style="margin-top: 40px; padding: 25px; background: rgba(102, 126, 234, 0.1); border: 2px solid #667eea; border-radius: 15px; text-align: center;">
+                    <p style="font-size: 1.5rem; color: #667eea;">
+                        <strong>Cadena Crítica = Ruta Crítica + Nivelación de Recursos</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Los 3 Principios de CCPM -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🎯 Los 3 Principios Fundamentales de CCPM</h2>
+                <div class="box" style="background: rgba(102, 126, 234, 0.1); margin-bottom: 20px;">
+                    <h3 style="color: #667eea;">1. Eliminar padding de las tareas individuales</h3>
+                    <p style="font-size: 1.2rem;">
+                        Usar estimaciones <strong>agresivas</strong> (50% de probabilidad de éxito)<br>
+                        No añadir colchones de seguridad ocultos en cada tarea
+                    </p>
+                </div>
+                <div class="box" style="background: rgba(81, 207, 102, 0.1); border-color: rgba(81, 207, 102, 0.3); margin-bottom: 20px;">
+                    <h3 style="color: #51cf66;">2. Agregar seguridad como buffers estratégicos</h3>
+                    <p style="font-size: 1.2rem;">
+                        Colocar la protección en <strong>puntos estratégicos</strong>,
+                        no distribuida en cada tarea
+                    </p>
+                </div>
+                <div class="box" style="background: rgba(118, 75, 162, 0.1); border-color: rgba(118, 75, 162, 0.3);">
+                    <h3 style="color: #764ba2;">3. Prohibir la multitarea mala</h3>
+                    <p style="font-size: 1.2rem;">
+                        "Focus and Finish" - Terminar una tarea antes de empezar la siguiente<br>
+                        El cambio de contexto mata la productividad
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Holgura vs Buffer -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>⚖️ Holgura (Slack) vs Buffer</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px; text-align: center;">
+                    El cambio de paradigma fundamental
+                </p>
+                <div class="two-column">
+                    <div class="box" style="background: rgba(255, 107, 107, 0.1); border-color: rgba(255, 107, 107, 0.3);">
+                        <h3 style="color: #ff6b6b;">Holgura (CPM)</h3>
+                        <ul style="font-size: 1.2rem;">
+                            <li><strong>Distribuida</strong> en tareas no críticas</li>
+                            <li><strong>Invisible</strong> y pasiva</li>
+                            <li><strong>Propiedad</strong> del ejecutor de la tarea</li>
+                            <li><strong>Vulnerable</strong> a Parkinson y Estudiante</li>
+                            <li><strong>No se gestiona</strong> activamente</li>
+                        </ul>
+                        <p style="margin-top: 20px; color: #ff6b6b; text-align: center; font-weight: 600;">
+                            ❌ Mecanismo de seguridad FALLIDO
+                        </p>
+                    </div>
+                    <div class="box" style="background: rgba(81, 207, 102, 0.1); border-color: rgba(81, 207, 102, 0.3);">
+                        <h3 style="color: #51cf66;">Buffer (CCPM)</h3>
+                        <ul style="font-size: 1.2rem;">
+                            <li><strong>Agregado</strong> en puntos estratégicos</li>
+                            <li><strong>Visible</strong> y activo</li>
+                            <li><strong>Propiedad</strong> del proyecto (PM)</li>
+                            <li><strong>Protegido</strong> de consumo temprano</li>
+                            <li><strong>Monitoreado</strong> constantemente</li>
+                        </ul>
+                        <p style="margin-top: 20px; color: #51cf66; text-align: center; font-weight: 600;">
+                            ✅ Mecanismo de seguridad ROBUSTO
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Los 3 Tipos de Buffers -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🛡️ Los 3 Tipos de Buffers en CCPM</h2>
+                <div class="box" style="background: rgba(102, 126, 234, 0.1); margin-bottom: 20px;">
+                    <h3 style="color: #667eea;">1. Buffer de Proyecto (Project Buffer - PB)</h3>
+                    <p style="font-size: 1.2rem;">
+                        Colocado al <strong>FINAL de la Cadena Crítica</strong>, antes de la fecha de entrega<br><br>
+                        <strong>Objetivo:</strong> Proteger la fecha de entrega del proyecto<br>
+                        <strong>Propiedad:</strong> Del proyecto (PM), NO de la última tarea<br>
+                        <strong>Consumo:</strong> Solo cuando la cadena crítica se retrasa
+                    </p>
+                </div>
+                <div class="diagram">
+                    <div class="task-box">A</div>
+                    <span class="arrow">→</span>
+                    <div class="task-box">B</div>
+                    <span class="arrow">→</span>
+                    <div class="task-box">C</div>
+                    <span class="arrow">→</span>
+                    <div class="buffer-box">PB</div>
+                    <span class="arrow">→</span>
+                    <span style="font-size: 1.5rem;">🏁 Entrega</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Buffer de Alimentación -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🛡️ 2. Buffer de Alimentación (Feeding Buffer - FB)</h2>
+                <div class="box" style="background: rgba(255, 193, 7, 0.1); border-color: rgba(255, 193, 7, 0.3);">
+                    <p style="font-size: 1.2rem;">
+                        Colocado donde una <strong>cadena NO crítica</strong> alimenta a la <strong>cadena crítica</strong><br><br>
+                        <strong>Objetivo:</strong> Proteger la cadena crítica de retrasos en rutas NO críticas<br>
+                        <strong>Propiedad:</strong> Del punto de unión<br>
+                        <strong>Consumo:</strong> Cuando la ruta no crítica se retrasa
+                    </p>
+                </div>
+                <div class="diagram" style="margin-top: 30px;">
+                    <div style="margin-bottom: 20px;">
+                        <span style="font-size: 1.2rem; color: #a0a0a0;">Cadena NO Crítica:</span><br>
+                        <div class="task-box" style="background: rgba(255, 193, 7, 0.2); border-color: #ffc107;">D</div>
+                        <span class="arrow">→</span>
+                        <div class="task-box" style="background: rgba(255, 193, 7, 0.2); border-color: #ffc107;">E</div>
+                        <span class="arrow">→</span>
+                        <div class="buffer-box" style="background: rgba(255, 193, 7, 0.3); border-color: #ffc107; color: #ffc107;">FB</div>
+                    </div>
+                    <div style="margin-top: 30px;">
+                        <span style="font-size: 2rem;">⬇️</span>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <span style="font-size: 1.2rem; color: #667eea;">Cadena Crítica:</span><br>
+                        <div class="task-box">A</div>
+                        <span class="arrow">→</span>
+                        <div class="task-box">B</div>
+                        <span class="arrow">→</span>
+                        <div class="buffer-box">PB</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Buffer de Recursos -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🛡️ 3. Buffer de Recursos (Resource Buffer - RB)</h2>
+                <div class="box" style="background: rgba(118, 75, 162, 0.1); border-color: rgba(118, 75, 162, 0.3);">
+                    <h3 style="color: #764ba2;">⚠️ IMPORTANTE: NO es tiempo, es una ALARMA</h3>
+                    <p style="font-size: 1.2rem; margin-top: 20px;">
+                        <strong>Definición:</strong> Una señal/alerta colocada ANTES de una tarea crítica
+                        que requiere un recurso específico<br><br>
+                        <strong>Objetivo:</strong> Asegurar que el recurso clave esté <strong>DISPONIBLE</strong>
+                        cuando la cadena crítica lo necesite<br><br>
+                        <strong>No consume tiempo:</strong> Es una notificación anticipada, no duración
+                    </p>
+                </div>
+                <h3 style="margin-top: 30px;">Ejemplo Práctico:</h3>
+                <div class="box">
+                    <p style="font-size: 1.2rem;">
+                        La tarea C requiere a María (experta en seguridad).<br>
+                        3-5 días antes de que C esté lista para empezar, el PM recibe una <strong>ALERTA</strong>:<br><br>
+                        <span style="color: #764ba2; font-weight: 600;">"Resource Buffer Alert: María necesaria en 3 días para Tarea C"</span><br><br>
+                        El PM verifica: ¿María estará disponible? Si no, ACTÚA ahora.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10b: Diagrama Visual de Buffers -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📊 Diagrama Visual: Los 3 Tipos de Buffers</h2>
+                <div style="background: rgba(255, 255, 255, 0.02); border: 2px solid rgba(102, 126, 234, 0.3); border-radius: 15px; padding: 30px; margin: 20px 0;">
+                    <svg width="100%" height="450" viewBox="0 0 900 450">
+                        <!-- Cadena NO Crítica 1 (arriba) -->
+                        <rect x="50" y="50" width="80" height="40" fill="rgba(255, 193, 7, 0.3)" stroke="#ffc107" stroke-width="2" rx="5"/>
+                        <text x="90" y="75" fill="#d0d0d0" font-size="14" text-anchor="middle" font-weight="bold">Tarea X</text>
+
+                        <line x1="130" y1="70" x2="170" y2="70" stroke="#d0d0d0" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                        <rect x="170" y="50" width="80" height="40" fill="rgba(255, 193, 7, 0.3)" stroke="#ffc107" stroke-width="2" rx="5"/>
+                        <text x="210" y="75" fill="#d0d0d0" font-size="14" text-anchor="middle" font-weight="bold">Tarea Y</text>
+
+                        <line x1="250" y1="70" x2="290" y2="70" stroke="#d0d0d0" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                        <!-- Feeding Buffer 1 -->
+                        <rect x="290" y="50" width="60" height="40" fill="rgba(255, 193, 7, 0.4)" stroke="#ffc107" stroke-width="3" rx="5" stroke-dasharray="5,5"/>
+                        <text x="320" y="75" fill="#ffc107" font-size="12" text-anchor="middle" font-weight="bold">FB</text>
+
+                        <!-- Flecha hacia cadena crítica -->
+                        <line x1="320" y1="90" x2="420" y2="180" stroke="#ffc107" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowhead-yellow)"/>
+
+                        <!-- Cadena Crítica (centro) -->
+                        <rect x="380" y="180" width="100" height="50" fill="rgba(102, 126, 234, 0.3)" stroke="#667eea" stroke-width="3" rx="5"/>
+                        <text x="430" y="210" fill="#d0d0d0" font-size="16" text-anchor="middle" font-weight="bold">Tarea A</text>
+
+                        <line x1="480" y1="205" x2="530" y2="205" stroke="#667eea" stroke-width="3" marker-end="url(#arrowhead-blue)"/>
+
+                        <rect x="530" y="180" width="100" height="50" fill="rgba(102, 126, 234, 0.3)" stroke="#667eea" stroke-width="3" rx="5"/>
+                        <text x="580" y="210" fill="#d0d0d0" font-size="16" text-anchor="middle" font-weight="bold">Tarea B</text>
+
+                        <line x1="630" y1="205" x2="680" y2="205" stroke="#667eea" stroke-width="3" marker-end="url(#arrowhead-blue)"/>
+
+                        <!-- Project Buffer -->
+                        <rect x="680" y="180" width="80" height="50" fill="rgba(81, 207, 102, 0.4)" stroke="#51cf66" stroke-width="3" rx="5" stroke-dasharray="5,5"/>
+                        <text x="720" y="210" fill="#51cf66" font-size="16" text-anchor="middle" font-weight="bold">PB</text>
+
+                        <line x1="760" y1="205" x2="810" y2="205" stroke="#51cf66" stroke-width="3" marker-end="url(#arrowhead-green)"/>
+
+                        <!-- Finish -->
+                        <circle cx="830" cy="205" r="20" fill="rgba(81, 207, 102, 0.2)" stroke="#51cf66" stroke-width="2"/>
+                        <text x="830" y="212" fill="#51cf66" font-size="20" text-anchor="middle">🏁</text>
+
+                        <!-- Cadena NO Crítica 2 (abajo) -->
+                        <rect x="50" y="330" width="80" height="40" fill="rgba(255, 193, 7, 0.3)" stroke="#ffc107" stroke-width="2" rx="5"/>
+                        <text x="90" y="355" fill="#d0d0d0" font-size="14" text-anchor="middle" font-weight="bold">Tarea Z</text>
+
+                        <line x1="130" y1="350" x2="170" y2="350" stroke="#d0d0d0" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                        <!-- Feeding Buffer 2 -->
+                        <rect x="170" y="330" width="60" height="40" fill="rgba(255, 193, 7, 0.4)" stroke="#ffc107" stroke-width="3" rx="5" stroke-dasharray="5,5"/>
+                        <text x="200" y="355" fill="#ffc107" font-size="12" text-anchor="middle" font-weight="bold">FB</text>
+
+                        <!-- Flecha hacia cadena crítica -->
+                        <line x1="200" y1="330" x2="560" y2="230" stroke="#ffc107" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowhead-yellow)"/>
+
+                        <!-- Resource Buffer (alarma) -->
+                        <g>
+                            <circle cx="490" cy="150" r="15" fill="rgba(118, 75, 162, 0.3)" stroke="#764ba2" stroke-width="2"/>
+                            <text x="490" y="155" fill="#764ba2" font-size="18" text-anchor="middle">🔔</text>
+                            <line x1="490" y1="165" x2="490" y2="180" stroke="#764ba2" stroke-width="2" stroke-dasharray="3,3"/>
+                            <text x="490" y="140" fill="#764ba2" font-size="11" text-anchor="middle" font-weight="bold">RB</text>
+                        </g>
+
+                        <!-- Arrow markers -->
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                <polygon points="0 0, 10 3, 0 6" fill="#d0d0d0"/>
+                            </marker>
+                            <marker id="arrowhead-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                <polygon points="0 0, 10 3, 0 6" fill="#667eea"/>
+                            </marker>
+                            <marker id="arrowhead-yellow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                <polygon points="0 0, 10 3, 0 6" fill="#ffc107"/>
+                            </marker>
+                            <marker id="arrowhead-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                <polygon points="0 0, 10 3, 0 6" fill="#51cf66"/>
+                            </marker>
+                        </defs>
+
+                        <!-- Labels -->
+                        <text x="160" y="30" fill="#ffc107" font-size="13" text-anchor="middle">Cadena NO Crítica</text>
+                        <text x="530" y="160" fill="#667eea" font-size="15" text-anchor="middle" font-weight="bold">CADENA CRÍTICA</text>
+                        <text x="90" y="310" fill="#ffc107" font-size="13" text-anchor="middle">Cadena NO Crítica</text>
+
+                        <!-- Legend -->
+                        <rect x="50" y="400" width="200" height="40" fill="rgba(0,0,0,0.3)" stroke="rgba(102, 126, 234, 0.3)" stroke-width="1" rx="5"/>
+                        <rect x="60" y="410" width="20" height="8" fill="rgba(102, 126, 234, 0.3)" stroke="#667eea" stroke-width="1"/>
+                        <text x="85" y="417" fill="#d0d0d0" font-size="11">Cadena Crítica</text>
+                        <rect x="60" y="425" width="20" height="8" fill="rgba(255, 193, 7, 0.3)" stroke="#ffc107" stroke-width="1"/>
+                        <text x="85" y="432" fill="#d0d0d0" font-size="11">Cadenas NO críticas</text>
+
+                        <rect x="270" y="400" width="180" height="40" fill="rgba(0,0,0,0.3)" stroke="rgba(102, 126, 234, 0.3)" stroke-width="1" rx="5"/>
+                        <rect x="280" y="410" width="20" height="8" fill="rgba(81, 207, 102, 0.4)" stroke="#51cf66" stroke-width="1" stroke-dasharray="2,2"/>
+                        <text x="305" y="417" fill="#d0d0d0" font-size="11">Project Buffer</text>
+                        <rect x="280" y="425" width="20" height="8" fill="rgba(255, 193, 7, 0.4)" stroke="#ffc107" stroke-width="1" stroke-dasharray="2,2"/>
+                        <text x="305" y="432" fill="#d0d0d0" font-size="11">Feeding Buffers</text>
+
+                        <rect x="470" y="400" width="180" height="40" fill="rgba(0,0,0,0.3)" stroke="rgba(102, 126, 234, 0.3)" stroke-width="1" rx="5"/>
+                        <circle cx="488" cy="418" r="8" fill="rgba(118, 75, 162, 0.3)" stroke="#764ba2" stroke-width="1"/>
+                        <text x="498" y="421" fill="#764ba2" font-size="12">🔔</text>
+                        <text x="515" y="421" fill="#d0d0d0" font-size="11">Resource Buffer (alarma)</text>
+                    </svg>
+                </div>
+                <p style="text-align: center; font-size: 1.2rem; color: #667eea; margin-top: 20px;">
+                    Visualización completa del sistema de protección de CCPM
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 11: Dimensionamiento de Buffers -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📏 Dimensionamiento de Buffers</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    ¿Cuán grande debe ser el Buffer de Proyecto?
+                </p>
+                <div class="box" style="background: rgba(102, 126, 234, 0.1); margin-bottom: 20px;">
+                    <h3 style="color: #667eea;">Método 1: Corte del 50% (Cut & Paste)</h3>
+                    <p style="font-size: 1.2rem;">
+                        Regla simple y efectiva:<br><br>
+                        1. Calcular el tiempo TOTAL cortado al eliminar padding de cada tarea<br>
+                        2. Buffer de Proyecto = <strong>50% del tiempo cortado</strong>
+                    </p>
+                    <div class="formula" style="margin-top: 20px;">
+                        PB = 50% × Σ(Tiempo Cortado)
+                    </div>
+                </div>
+                <h3>Ejemplo:</h3>
+                <div class="box">
+                    <p style="font-size: 1.1rem;">
+                        Tarea A: 10d → 5d (cortado: 5d)<br>
+                        Tarea B: 8d → 4d (cortado: 4d)<br>
+                        Tarea C: 12d → 6d (cortado: 6d)<br><br>
+                        Total cortado = 5+4+6 = 15 días<br>
+                        <strong style="color: #51cf66;">Buffer de Proyecto = 50% × 15 = 7.5 días ≈ 8 días</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 12: Método SSQ -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📏 Método 2: Raíz Cuadrada de Suma de Cuadrados (SSQ)</h2>
+                <p style="font-size: 1.3rem; margin-bottom: 30px;">
+                    Método estadísticamente más robusto, basado en teoría de probabilidades
+                </p>
+                <div class="formula">
+                    PB = √(Σ(Tiempo_Cortado_i)²)
+                </div>
+                <h3 style="margin-top: 30px;">Mismo ejemplo con SSQ:</h3>
+                <div class="box">
+                    <p style="font-size: 1.1rem;">
+                        Tarea A cortado: 5d → 5² = 25<br>
+                        Tarea B cortado: 4d → 4² = 16<br>
+                        Tarea C cortado: 6d → 6² = 36<br><br>
+                        Suma de cuadrados = 25+16+36 = 77<br>
+                        <strong style="color: #51cf66;">Buffer = √77 ≈ 8.8 días ≈ 9 días</strong>
+                    </p>
+                </div>
+                <div style="margin-top: 30px; padding: 20px; background: rgba(102, 126, 234, 0.1); border-radius: 10px;">
+                    <p style="text-align: center; font-size: 1.2rem;">
+                        💡 SSQ da resultados similares al 50%, pero es más preciso cuando las tareas
+                        tienen variabilidades muy diferentes
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 13: Gráfico de Fiebre Visual -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🌡️ Gráfico de Fiebre (Fever Chart)</h2>
+                <p style="font-size: 1.3rem; margin-bottom: 20px; text-align: center;">
+                    Herramienta de monitoreo visual del estado del proyecto en CCPM
+                </p>
+                <div style="background: rgba(255, 255, 255, 0.02); border: 2px solid rgba(102, 126, 234, 0.3); border-radius: 15px; padding: 30px; margin: 20px 0;">
+                    <svg width="100%" height="450" viewBox="0 0 700 450">
+                        <!-- Zonas de colores -->
+                        <!-- Zona VERDE (abajo izquierda) -->
+                        <path d="M 50,400 L 50,250 L 400,50 L 650,50 L 650,400 Z"
+                              fill="rgba(81, 207, 102, 0.15)" stroke="none"/>
+
+                        <!-- Zona AMARILLA (diagonal central) -->
+                        <path d="M 50,250 L 200,100 L 650,100 L 650,150 L 250,400 L 50,400 Z"
+                              fill="rgba(255, 193, 7, 0.15)" stroke="none"/>
+
+                        <!-- Zona ROJA (arriba derecha) -->
+                        <path d="M 50,50 L 50,250 L 200,100 L 650,100 L 650,50 Z"
+                              fill="rgba(255, 107, 107, 0.15)" stroke="none"/>
+
+                        <!-- Línea diagonal de referencia (ideal) -->
+                        <line x1="50" y1="400" x2="650" y2="50" stroke="#667eea" stroke-width="3" stroke-dasharray="10,5"/>
+
+                        <!-- Ejes -->
+                        <line x1="50" y1="50" x2="50" y2="400" stroke="#d0d0d0" stroke-width="2"/>
+                        <line x1="50" y1="400" x2="650" y2="400" stroke="#d0d0d0" stroke-width="2"/>
+
+                        <!-- Etiquetas eje X (% Cadena Crítica completada) -->
+                        <text x="50" y="425" fill="#d0d0d0" font-size="12" text-anchor="middle">0%</text>
+                        <text x="200" y="425" fill="#d0d0d0" font-size="12" text-anchor="middle">25%</text>
+                        <text x="350" y="425" fill="#d0d0d0" font-size="12" text-anchor="middle">50%</text>
+                        <text x="500" y="425" fill="#d0d0d0" font-size="12" text-anchor="middle">75%</text>
+                        <text x="650" y="425" fill="#d0d0d0" font-size="12" text-anchor="middle">100%</text>
+                        <text x="350" y="445" fill="#d0d0d0" font-size="14" text-anchor="middle" font-weight="bold">% Cadena Crítica Completada</text>
+
+                        <!-- Etiquetas eje Y (% Buffer consumido) -->
+                        <text x="35" y="405" fill="#d0d0d0" font-size="12" text-anchor="end">0%</text>
+                        <text x="35" y="318" fill="#d0d0d0" font-size="12" text-anchor="end">25%</text>
+                        <text x="35" y="230" fill="#d0d0d0" font-size="12" text-anchor="end">50%</text>
+                        <text x="35" y="143" fill="#d0d0d0" font-size="12" text-anchor="end">75%</text>
+                        <text x="35" y="55" fill="#d0d0d0" font-size="12" text-anchor="end">100%</text>
+                        <text x="15" y="225" fill="#d0d0d0" font-size="14" text-anchor="middle" font-weight="bold" transform="rotate(-90, 15, 225)">% Buffer Consumido</text>
+
+                        <!-- Línea de progreso del proyecto (ejemplo) -->
+                        <polyline points="50,400 120,380 200,340 300,280 400,200 500,150 580,120"
+                                  fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+
+                        <!-- Puntos de medición -->
+                        <circle cx="50" cy="400" r="6" fill="#51cf66" stroke="#ffffff" stroke-width="2"/>
+                        <circle cx="120" cy="380" r="6" fill="#51cf66" stroke="#ffffff" stroke-width="2"/>
+                        <circle cx="200" cy="340" r="6" fill="#51cf66" stroke="#ffffff" stroke-width="2"/>
+                        <circle cx="300" cy="280" r="6" fill="#51cf66" stroke="#ffffff" stroke-width="2"/>
+                        <circle cx="400" cy="200" r="6" fill="#ffc107" stroke="#ffffff" stroke-width="2"/>
+                        <circle cx="500" cy="150" r="6" fill="#ff6b6b" stroke="#ffffff" stroke-width="2"/>
+                        <circle cx="580" cy="120" r="8" fill="#ff6b6b" stroke="#ffffff" stroke-width="3"/>
+
+                        <!-- Indicador actual -->
+                        <text x="580" y="105" fill="#ff6b6b" font-size="13" text-anchor="middle" font-weight="bold">AHORA</text>
+
+                        <!-- Grid lines (opcional) -->
+                        <line x1="50" y1="313" x2="650" y2="313" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" stroke-dasharray="3,3"/>
+                        <line x1="50" y1="225" x2="650" y2="225" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" stroke-dasharray="3,3"/>
+                        <line x1="50" y1="138" x2="650" y2="138" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" stroke-dasharray="3,3"/>
+                        <line x1="200" y1="50" x2="200" y2="400" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" stroke-dasharray="3,3"/>
+                        <line x1="350" y1="50" x2="350" y2="400" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" stroke-dasharray="3,3"/>
+                        <line x1="500" y1="50" x2="500" y2="400" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" stroke-dasharray="3,3"/>
+
+                        <!-- Leyenda de zonas -->
+                        <g transform="translate(90, 60)">
+                            <rect x="0" y="0" width="15" height="15" fill="rgba(81, 207, 102, 0.3)" stroke="#51cf66" stroke-width="1"/>
+                            <text x="20" y="12" fill="#d0d0d0" font-size="11">ZONA VERDE - Proyecto en buen estado</text>
+                        </g>
+                        <g transform="translate(90, 80)">
+                            <rect x="0" y="0" width="15" height="15" fill="rgba(255, 193, 7, 0.3)" stroke="#ffc107" stroke-width="1"/>
+                            <text x="20" y="12" fill="#d0d0d0" font-size="11">ZONA AMARILLA - Monitorear de cerca</text>
+                        </g>
+                        <g transform="translate(90, 100)">
+                            <rect x="0" y="0" width="15" height="15" fill="rgba(255, 107, 107, 0.3)" stroke="#ff6b6b" stroke-width="1"/>
+                            <text x="20" y="12" fill="#d0d0d0" font-size="11">ZONA ROJA - Acción inmediata necesaria</text>
+                        </g>
+                        <g transform="translate(90, 120)">
+                            <line x1="0" y1="7" x2="15" y2="7" stroke="#667eea" stroke-width="2" stroke-dasharray="5,3"/>
+                            <text x="20" y="12" fill="#d0d0d0" font-size="11">Línea ideal (buffer = completado)</text>
+                        </g>
+                    </svg>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 20px;">
+                    <div style="background: rgba(81, 207, 102, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(81, 207, 102, 0.3);">
+                        <p style="font-size: 1rem; text-align: center;"><strong style="color: #51cf66;">✅ Verde</strong><br><span style="font-size: 0.9rem;">Bajo línea ideal<br>Todo bien</span></p>
+                    </div>
+                    <div style="background: rgba(255, 193, 7, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(255, 193, 7, 0.3);">
+                        <p style="font-size: 1rem; text-align: center;"><strong style="color: #ffc107;">⚠️ Amarillo</strong><br><span style="font-size: 0.9rem;">Cerca de línea<br>Alerta</span></p>
+                    </div>
+                    <div style="background: rgba(255, 107, 107, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(255, 107, 107, 0.3);">
+                        <p style="font-size: 1rem; text-align: center;"><strong style="color: #ff6b6b;">🚨 Rojo</strong><br><span style="font-size: 0.9rem;">Sobre línea ideal<br>Actuar YA</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 14: Break -->
+        <div class="slide">
+            <div class="slide-content" style="text-align: center;">
+                <p class="emoji">☕</p>
+                <h2>Break - 15 minutos</h2>
+                <p style="font-size: 1.4rem; margin-top: 30px; color: #a0a0a0;">
+                    Próximo: Caso de Estudio CCPM Completo (75 minutos)
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 15: Taller Intro -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🎮 Caso de Estudio: Proyecto A-B-C-D</h2>
+                <div class="workshop">
+                    <p class="emoji">🎯</p>
+                    <h3>Objetivo del Taller</h3>
+                    <p style="font-size: 1.3rem;">
+                        Resolver un proyecto COMPLETO paso a paso:<br><br>
+                        1. Calcular Ruta Crítica (CPM)<br>
+                        2. Identificar restricción de recursos<br>
+                        3. Calcular Cadena Crítica<br>
+                        4. Aplicar CCPM (eliminar padding + agregar buffers)<br>
+                        5. Comparar resultados: CPM vs Tradicional vs CCPM
+                    </p>
+                </div>
+                <p style="text-align: center; font-size: 1.3rem; margin-top: 30px; color: #a0a0a0;">
+                    Este es el momento "aha!" donde todo se integra
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 16: Proyecto Setup -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📋 Setup del Proyecto</h2>
+                <h3>Tareas y Dependencias:</h3>
+                <table style="font-size: 1.1rem;">
+                    <thead>
+                        <tr>
+                            <th>Tarea</th>
+                            <th>Depende de</th>
+                            <th>Duración Inflada</th>
+                            <th>Recurso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>A</strong></td>
+                            <td>-</td>
+                            <td>10 días</td>
+                            <td>Juan</td>
+                        </tr>
+                        <tr>
+                            <td><strong>B</strong></td>
+                            <td>A</td>
+                            <td>10 días</td>
+                            <td>Ana</td>
+                        </tr>
+                        <tr>
+                            <td><strong>C</strong></td>
+                            <td>A</td>
+                            <td>5 días</td>
+                            <td>Pedro</td>
+                        </tr>
+                        <tr>
+                            <td><strong>D</strong></td>
+                            <td>C</td>
+                            <td>10 días</td>
+                            <td>Ana</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="margin-top: 30px; padding: 25px; background: rgba(255, 107, 107, 0.1); border: 2px solid rgba(255, 107, 107, 0.3); border-radius: 15px;">
+                    <p style="text-align: center; font-size: 1.4rem; color: #ff6b6b;">
+                        ⚠️ Nota la trampa: Ana hace TANTO B como D
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 17: Paso 1 - CPM -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🔍 Paso 1: Calcular Ruta Crítica (CPM)</h2>
+                <p style="font-size: 1.3rem; margin-bottom: 30px;">
+                    Sin considerar recursos (suposición de CPM)
+                </p>
+                <div class="box" style="margin-bottom: 20px;">
+                    <h3>Ruta 1: A → B</h3>
+                    <div class="diagram">
+                        <div class="task-box">A (10d)</div>
+                        <span class="arrow">→</span>
+                        <div class="task-box">B (10d)</div>
+                    </div>
+                    <p style="text-align: center; font-size: 1.3rem; margin-top: 15px;">
+                        Duración Total: <strong>20 días</strong>
+                    </p>
+                </div>
+                <div class="box">
+                    <h3>Ruta 2: A → C → D</h3>
+                    <div class="diagram">
+                        <div class="task-box">A (10d)</div>
+                        <span class="arrow">→</span>
+                        <div class="task-box">C (5d)</div>
+                        <span class="arrow">→</span>
+                        <div class="task-box">D (10d)</div>
+                    </div>
+                    <p style="text-align: center; font-size: 1.3rem; margin-top: 15px;">
+                        Duración Total: <strong>25 días</strong>
+                    </p>
+                </div>
+                <div style="margin-top: 30px; padding: 25px; background: rgba(102, 126, 234, 0.1); border: 2px solid #667eea; border-radius: 15px; text-align: center;">
+                    <p style="font-size: 1.8rem; color: #667eea;">
+                        <strong>Ruta Crítica (CPM) = A-C-D = 25 días</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 18: Paso 2 - La Revelación -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>💡 Paso 2: La Revelación del Recurso</h2>
+                <div style="padding: 60px; background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(255, 193, 7, 0.1)); border: 3px solid #ff6b6b; border-radius: 20px; text-align: center;">
+                    <p style="font-size: 2rem; line-height: 1.8; color: #ffffff;">
+                        El PM se da cuenta:
+                    </p>
+                    <p style="font-size: 2.5rem; margin-top: 30px; color: #ff6b6b; font-weight: 700;">
+                        Ana hace TANTO la tarea B COMO la tarea D
+                    </p>
+                    <p style="font-size: 1.8rem; margin-top: 30px; color: #ffc107;">
+                        Ana NO puede hacer multitarea.<br>
+                        Tiene que hacer una, DESPUÉS la otra.
+                    </p>
+                </div>
+                <div style="margin-top: 40px; padding: 30px; background: rgba(102, 126, 234, 0.1); border: 2px solid #667eea; border-radius: 15px;">
+                    <h3 style="color: #667eea; text-align: center;">Pregunta Crítica:</h3>
+                    <p style="text-align: center; font-size: 1.5rem;">
+                        ¿El plan de 25 días (CPM) sigue siendo válido?
+                    </p>
+                    <p style="text-align: center; font-size: 2.5rem; margin-top: 20px; color: #ff6b6b; font-weight: 700;">
+                        NO
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 19: Paso 3 - Cadena Crítica -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🔗 Paso 3: Identificar la Cadena Crítica</h2>
+                <p style="font-size: 1.3rem; margin-bottom: 30px;">
+                    Re-planificar con recursos nivelados (Ana no puede hacer B y D simultáneamente)
+                </p>
+                <div class="box">
+                    <h3>Decisión: ¿Qué hace Ana primero?</h3>
+                    <p style="font-size: 1.2rem; margin: 20px 0;">
+                        Para minimizar duración total, Ana debe hacer PRIMERO la tarea de la ruta más larga.<br>
+                        <strong style="color: #667eea;">D está en la ruta de 25d, B en la de 20d → Ana hace D primero</strong>
+                    </p>
+                </div>
+                <div class="diagram" style="margin-top: 30px;">
+                    <p style="font-size: 1.2rem; margin-bottom: 15px;">Nueva Secuencia:</p>
+                    <div class="task-box">A (10d)</div>
+                    <span class="arrow">→</span>
+                    <div class="task-box">C (5d)</div>
+                    <span class="arrow">→</span>
+                    <div class="task-box">D (10d)</div>
+                    <span class="arrow">→</span>
+                    <div class="task-box">B (10d)</div>
+                </div>
+                <div style="margin-top: 40px; padding: 25px; background: rgba(255, 107, 107, 0.1); border: 2px solid rgba(255, 107, 107, 0.3); border-radius: 15px; text-align: center;">
+                    <p style="font-size: 1.8rem; color: #ff6b6b;">
+                        <strong>Cadena Crítica Real = A-C-D-B = 35 días</strong><br>
+                        <span style="font-size: 1.3rem;">(¡10 días MÁS que lo que CPM dijo!)</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 20: El Momento "Aha!" -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>💥 El Momento "Aha!"</h2>
+                <div style="padding: 60px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border: 3px solid #667eea; border-radius: 20px; text-align: center;">
+                    <p style="font-size: 2.5rem; line-height: 1.8; color: #ffffff; font-weight: 700;">
+                        CPM nos dio 25 días<br>
+                        <span style="color: #ff6b6b;">(IMPOSIBLE de cumplir)</span>
+                    </p>
+                    <p style="font-size: 2rem; margin-top: 40px; color: #ffc107;">
+                        La duración REAL con recursos nivelados es 35 días
+                    </p>
+                    <p style="font-size: 1.5rem; margin-top: 40px; color: #a0a0a0;">
+                        Esta es la razón por la que tantos proyectos CPM "fallan":
+                        <strong>El plan inicial era matemáticamente correcto pero operativamente imposible</strong>
+                    </p>
+                </div>
+                <div style="margin-top: 40px; padding: 25px; background: rgba(81, 207, 102, 0.1); border: 2px solid rgba(81, 207, 102, 0.3); border-radius: 15px; text-align: center;">
+                    <p style="font-size: 1.4rem; color: #51cf66;">
+                        CCPM identifica la Cadena Crítica REAL considerando recursos
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 21: Paso 4 - Aplicar CCPM -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🎯 Paso 4: Aplicar CCPM</h2>
+                <h3>4a. Eliminar padding (cortar al 50%)</h3>
+                <table style="font-size: 1.1rem;">
+                    <thead>
+                        <tr>
+                            <th>Tarea</th>
+                            <th>Duración Inflada</th>
+                            <th>Duración Agresiva (50%)</th>
+                            <th>Cortado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>A</strong></td>
+                            <td>10 días</td>
+                            <td>5 días</td>
+                            <td>5 días</td>
+                        </tr>
+                        <tr>
+                            <td><strong>B</strong></td>
+                            <td>10 días</td>
+                            <td>5 días</td>
+                            <td>5 días</td>
+                        </tr>
+                        <tr>
+                            <td><strong>C</strong></td>
+                            <td>5 días</td>
+                            <td>3 días</td>
+                            <td>2 días</td>
+                        </tr>
+                        <tr>
+                            <td><strong>D</strong></td>
+                            <td>10 días</td>
+                            <td>5 días</td>
+                            <td>5 días</td>
+                        </tr>
+                        <tr style="background: rgba(102, 126, 234, 0.2);">
+                            <td><strong>TOTAL</strong></td>
+                            <td><strong>35 días</strong></td>
+                            <td><strong>18 días</strong></td>
+                            <td><strong>17 días</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="text-align: center; font-size: 1.3rem; margin-top: 20px;">
+                    Nueva Cadena Crítica agresiva: <strong style="color: #667eea;">18 días</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 22: Paso 5 - Buffer -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🛡️ Paso 5: Calcular y Agregar Buffer de Proyecto</h2>
+                <div class="box">
+                    <h3>Método del 50%:</h3>
+                    <div class="formula">
+                        PB = 50% × 17 días = 8.5 días ≈ 9 días
+                    </div>
+                </div>
+                <div class="diagram" style="margin-top: 30px;">
+                    <p style="font-size: 1.3rem; margin-bottom: 20px;">Plan CCPM Final:</p>
+                    <div class="task-box">A (5d)</div>
+                    <span class="arrow">→</span>
+                    <div class="task-box">C (3d)</div>
+                    <span class="arrow">→</span>
+                    <div class="task-box">D (5d)</div>
+                    <span class="arrow">→</span>
+                    <div class="task-box">B (5d)</div>
+                    <span class="arrow">→</span>
+                    <div class="buffer-box">PB (9d)</div>
+                    <span class="arrow">→</span>
+                    <span style="font-size: 1.5rem;">🏁</span>
+                </div>
+                <div style="margin-top: 40px; padding: 30px; background: rgba(81, 207, 102, 0.1); border: 2px solid rgba(81, 207, 102, 0.3); border-radius: 15px; text-align: center;">
+                    <p style="font-size: 2rem; color: #51cf66; font-weight: 700;">
+                        Plan CCPM = 18d + 9d = 27 días
+                    </p>
+                    <p style="font-size: 1.3rem; margin-top: 15px;">
+                        Con fecha de entrega PROTEGIDA y REALISTA
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 23: Resultado Final -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📊 Resultado Final: Comparativa</h2>
+                <table style="font-size: 1.2rem;">
+                    <thead>
+                        <tr>
+                            <th>Método</th>
+                            <th>Duración</th>
+                            <th>Validez</th>
+                            <th>Protección</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background: rgba(255, 107, 107, 0.1);">
+                            <td><strong>CPM (ingenuo)</strong></td>
+                            <td>25 días</td>
+                            <td style="color: #ff6b6b;">❌ INCORRECTO</td>
+                            <td style="color: #ff6b6b;">Ignora recursos</td>
+                        </tr>
+                        <tr style="background: rgba(255, 193, 7, 0.1);">
+                            <td><strong>Tradicional inflado</strong></td>
+                            <td>35 días</td>
+                            <td style="color: #ffc107;">✓ Correcto</td>
+                            <td style="color: #ff6b6b;">❌ Padding vulnerable</td>
+                        </tr>
+                        <tr style="background: rgba(81, 207, 102, 0.1);">
+                            <td><strong>CCPM</strong></td>
+                            <td>27 días (18+9)</td>
+                            <td style="color: #51cf66;">✓ Correcto</td>
+                            <td style="color: #51cf66;">✅ Buffer protegido</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="margin-top: 40px; padding: 30px; background: rgba(102, 126, 234, 0.1); border: 2px solid #667eea; border-radius: 15px;">
+                    <h3 style="color: #667eea; text-align: center;">💡 Conclusión del Caso</h3>
+                    <ul style="font-size: 1.2rem; margin-top: 20px;">
+                        <li>CCPM entrega <strong>8 días ANTES</strong> que el plan inflado tradicional</li>
+                        <li>CCPM es <strong>REALISTA</strong> (considera recursos)</li>
+                        <li>CCPM es <strong>ROBUSTO</strong> (buffer protegido)</li>
+                        <li>CCPM es <strong>GESTIONABLE</strong> (visibilidad del buffer)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 24: Debriefing del Caso -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🔍 Debriefing: Lecciones del Caso A-B-C-D</h2>
+                <div style="padding: 40px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border: 2px solid #667eea; border-radius: 20px;">
+                    <h3 style="color: #667eea;">Pregunta 1: ¿Por qué CPM falló?</h3>
+                    <p style="font-size: 1.2rem; margin: 15px 0;">
+                        Porque asumió que B y D podían ocurrir en paralelo (recursos ilimitados).
+                        En realidad, Ana las hace secuencialmente.
+                    </p>
+
+                    <h3 style="color: #667eea; margin-top: 30px;">Pregunta 2: ¿Por qué el plan tradicional inflado (35d) es lento?</h3>
+                    <p style="font-size: 1.2rem; margin: 15px 0;">
+                        Porque el padding está DISTRIBUIDO e INVISIBLE. Parkinson y el Síndrome
+                        del Estudiante lo consumirán, y el proyecto IGUALMENTE llegará a 35 días o más.
+                    </p>
+
+                    <h3 style="color: #667eea; margin-top: 30px;">Pregunta 3: ¿Por qué CCPM (27d) es mejor?</h3>
+                    <p style="font-size: 1.2rem; margin: 15px 0;">
+                        • Cadena crítica correcta (considera recursos)<br>
+                        • Tareas agresivas (sin padding oculto)<br>
+                        • Buffer agregado y visible (protegido)<br>
+                        • Resultado: Más rápido Y más robusto
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 25: Tabla Comparativa Final -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📊 Cuadro Comparativo Final: CPM vs Agile vs CCPM</h2>
+                <table style="font-size: 1rem;">
+                    <thead>
+                        <tr>
+                            <th>Característica</th>
+                            <th>CPM</th>
+                            <th>Agile (Scrum)</th>
+                            <th>CCPM</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Foco</strong></td>
+                            <td>Secuencia de tareas</td>
+                            <td>Valor y adaptabilidad</td>
+                            <td>Flujo y recursos</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Incertidumbre</strong></td>
+                            <td>Holgura distribuida</td>
+                            <td>Iteración (re-plan)</td>
+                            <td>Buffers agregados</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Factores Psicológicos</strong></td>
+                            <td style="color: #ff6b6b;">Muy vulnerable</td>
+                            <td style="color: #ffc107;">Media</td>
+                            <td style="color: #51cf66;">Baja (eliminada)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Recursos</strong></td>
+                            <td style="color: #ff6b6b;">Asume ilimitados</td>
+                            <td>Equipo dedicado</td>
+                            <td style="color: #51cf66;">Central</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Multitarea</strong></td>
+                            <td>Permitida (implícita)</td>
+                            <td>Minimizada</td>
+                            <td>Prohibida explícitamente</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ideal para</strong></td>
+                            <td>Proyectos simples y predecibles</td>
+                            <td>Requisitos emergentes</td>
+                            <td>Recursos compartidos/limitados</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Slide 26: ¿Cuándo usar qué? -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🤔 ¿Cuándo Usar Cada Método?</h2>
+                <div class="box" style="background: rgba(255, 107, 107, 0.1); border-color: rgba(255, 107, 107, 0.3); margin-bottom: 20px;">
+                    <h3 style="color: #ff6b6b;">CPM</h3>
+                    <ul style="font-size: 1.2rem;">
+                        <li><strong>Proyectos muy predecibles:</strong> Construcción simple, instalación de equipos</li>
+                        <li><strong>Recursos abundantes:</strong> Equipos grandes, no hay cuellos de botella</li>
+                        <li><strong>Uso académico:</strong> Para aprender planificación básica</li>
+                    </ul>
+                </div>
+                <div class="box" style="background: rgba(102, 126, 234, 0.1); margin-bottom: 20px;">
+                    <h3 style="color: #667eea;">Agile (Scrum)</h3>
+                    <ul style="font-size: 1.2rem;">
+                        <li><strong>Software, I+D:</strong> Requisitos cambiantes o poco claros</li>
+                        <li><strong>Innovación:</strong> Necesidad de feedback rápido del mercado</li>
+                        <li><strong>Equipos autoorganizados:</strong> Alta autonomía y colaboración</li>
+                    </ul>
+                </div>
+                <div class="box" style="background: rgba(81, 207, 102, 0.1); border-color: rgba(81, 207, 102, 0.3);">
+                    <h3 style="color: #51cf66;">CCPM</h3>
+                    <ul style="font-size: 1.2rem;">
+                        <li><strong>Manufactura, Ingeniería:</strong> Requisitos estables pero recursos limitados</li>
+                        <li><strong>Multi-proyecto:</strong> Múltiples proyectos compiten por mismos recursos</li>
+                        <li><strong>Ambientes con alta presión de tiempo:</strong> Necesidad de entregar rápido</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 27: Hibridación -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🔄 Hibridación: Agile + CCPM</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    En la práctica, las organizaciones maduras combinan enfoques
+                </p>
+                <div style="padding: 40px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border: 2px solid #667eea; border-radius: 20px;">
+                    <h3 style="color: #667eea;">Modelo Híbrido Común:</h3>
+                    <div class="box" style="background: rgba(102, 126, 234, 0.2); margin: 20px 0;">
+                        <h3 style="color: #667eea;">Nivel Proyecto/Portfolio (CCPM)</h3>
+                        <p style="font-size: 1.2rem;">
+                            • Usar CCPM para planificar el proyecto general<br>
+                            • Identificar Cadena Crítica considerando recursos compartidos<br>
+                            • Dimensionar Buffers de Proyecto y Alimentación<br>
+                            • Gestionar prioridades entre proyectos
+                        </p>
+                    </div>
+                    <div class="box" style="background: rgba(81, 207, 102, 0.2); margin: 20px 0;">
+                        <h3 style="color: #51cf66;">Nivel Ejecución (Agile)</h3>
+                        <p style="font-size: 1.2rem;">
+                            • Dentro de cada bloque de la cadena crítica, usar Scrum/Sprints<br>
+                            • Estimar con Story Points y Planning Poker<br>
+                            • Iterar y adaptar el CÓMO se construye<br>
+                            • Mantener velocidad para forecasting
+                        </p>
+                    </div>
+                </div>
+                <p style="margin-top: 30px; text-align: center; font-size: 1.3rem; color: #a0a0a0;">
+                    CCPM gestiona el CUÁNDO y los recursos. Agile gestiona el CÓMO y el feedback.
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 28: Resumen Completo del Curso -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📚 Resumen Completo del Curso</h2>
+                <div class="box" style="background: rgba(102, 126, 234, 0.1); margin-bottom: 15px;">
+                    <h3 style="color: #667eea;">Clase 1: La Crisis</h3>
+                    <p style="font-size: 1.1rem;">Cono de Incertidumbre, Parkinson, Síndrome del Estudiante, Ciclo vicioso del padding</p>
+                </div>
+                <div class="box" style="background: rgba(118, 75, 162, 0.1); border-color: rgba(118, 75, 162, 0.3); margin-bottom: 15px;">
+                    <h3 style="color: #764ba2;">Clase 2: Los Métodos</h3>
+                    <p style="font-size: 1.1rem;">PERT (3 puntos), CPM, T-Shirt Sizing, Story Points, Planning Poker, Velocidad</p>
+                </div>
+                <div class="box" style="background: rgba(81, 207, 102, 0.1); border-color: rgba(81, 207, 102, 0.3);">
+                    <h3 style="color: #51cf66;">Clase 3: La Solución</h3>
+                    <p style="font-size: 1.1rem;">CCPM, Cadena Crítica, 3 tipos de Buffers (PB, FB, RB), Gráfico de Fiebre, Caso A-B-C-D</p>
+                </div>
+                <div style="margin-top: 40px; padding: 30px; background: rgba(102, 126, 234, 0.1); border: 2px solid #667eea; border-radius: 15px;">
+                    <h3 style="color: #667eea; text-align: center;">🎯 Mensaje Central</h3>
+                    <p style="text-align: center; font-size: 1.5rem; line-height: 1.8;">
+                        <strong>Estimar de forma real</strong> significa:<br>
+                        Reconocer la incertidumbre, gestionar factores humanos,<br>
+                        y colocar la seguridad en <strong>buffers visibles y estratégicos</strong>,<br>
+                        no en padding oculto y vulnerable
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 29: Lo que NO hacer -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>❌ Lo que NO Hacer (Recapitulación)</h2>
+                <ul style="font-size: 1.3rem;">
+                    <li>NO tratar estimaciones iniciales (±400%) como compromisos fijos</li>
+                    <li>NO planificar durante meses sin comenzar a ejecutar</li>
+                    <li>NO distribuir padding oculto en cada tarea</li>
+                    <li>NO ignorar factores psicológicos (Parkinson, Estudiante)</li>
+                    <li>NO usar CPM sin considerar restricciones de recursos</li>
+                    <li>NO permitir multitarea mala (cambio de contexto constante)</li>
+                    <li>NO dejar los buffers sin monitorear (Gráfico de Fiebre obligatorio)</li>
+                    <li>NO estimar en tiempo absoluto cuando la incertidumbre es alta</li>
+                </ul>
+                <div style="margin-top: 40px; padding: 25px; background: rgba(255, 107, 107, 0.1); border: 2px solid rgba(255, 107, 107, 0.3); border-radius: 15px; text-align: center;">
+                    <p style="font-size: 1.4rem; color: #ff6b6b;">
+                        Estos anti-patrones son la causa del 70% de fracasos de proyectos
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 30: Lo que SÍ hacer -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>✅ Lo que SÍ Hacer (Mejores Prácticas)</h2>
+                <ul style="font-size: 1.3rem;">
+                    <li>SÍ reconocer el Cono de Incertidumbre y actuar según la fase del proyecto</li>
+                    <li>SÍ iterar y obtener feedback rápido para estrechar el cono</li>
+                    <li>SÍ usar estimación relativa (T-Shirt, Story Points) en lugar de absoluta</li>
+                    <li>SÍ aplicar Planning Poker para consenso y exposición de suposiciones</li>
+                    <li>SÍ identificar la Cadena Crítica considerando recursos</li>
+                    <li>SÍ eliminar padding de tareas y agregar Buffers estratégicos</li>
+                    <li>SÍ monitorear activamente los buffers con Gráfico de Fiebre</li>
+                    <li>SÍ prohibir multitarea mala: "Focus and Finish"</li>
+                    <li>SÍ considerar hibridación Agile-CCPM según contexto</li>
+                </ul>
+                <div style="margin-top: 40px; padding: 25px; background: rgba(81, 207, 102, 0.1); border: 2px solid rgba(81, 207, 102, 0.3); border-radius: 15px; text-align: center;">
+                    <p style="font-size: 1.4rem; color: #51cf66;">
+                        Estas prácticas incrementan la probabilidad de éxito del proyecto en un 40-60%
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 31: Recursos Adicionales -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📚 Recursos Adicionales</h2>
+                <div class="box" style="margin-bottom: 20px;">
+                    <h3>Libros Fundamentales</h3>
+                    <ul style="font-size: 1.2rem;">
+                        <li><strong>"Critical Chain"</strong> - Eliyahu M. Goldratt (1997)</li>
+                        <li><strong>"The Goal"</strong> - Eliyahu M. Goldratt (1984)</li>
+                        <li><strong>"Software Estimation: Demystifying the Black Art"</strong> - Steve McConnell</li>
+                        <li><strong>"Agile Estimating and Planning"</strong> - Mike Cohn</li>
+                    </ul>
+                </div>
+                <div class="box" style="margin-bottom: 20px;">
+                    <h3>Herramientas</h3>
+                    <ul style="font-size: 1.2rem;">
+                        <li>Microsoft Project (con extensión CCPM)</li>
+                        <li>Jira (para Planning Poker y Story Points)</li>
+                        <li>Azure DevOps Boards (para Scrum completo)</li>
+                        <li>ProChain / Exepron (software especializado en CCPM)</li>
+                    </ul>
+                </div>
+                <div class="box">
+                    <h3>Certificaciones</h3>
+                    <ul style="font-size: 1.2rem;">
+                        <li>PMI-ACP (Agile Certified Practitioner)</li>
+                        <li>Certified Scrum Master (CSM)</li>
+                        <li>TOC for Education (TOCICO)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 32: Cierre del Curso -->
+        <div class="slide">
+            <div class="slide-content" style="text-align: center;">
+                <h1>¡Fin del Curso!</h1>
+                <p style="font-size: 2rem; margin: 40px 0; color: #a0a0a0;">
+                    Felicitaciones por completar el curso de Estimación de Proyectos
+                </p>
+                <p class="emoji">🎓</p>
+                <div style="margin-top: 50px; padding: 40px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border: 2px solid #667eea; border-radius: 20px;">
+                    <h3 style="color: #667eea; font-size: 2rem;">Ahora Sabes:</h3>
+                    <p style="font-size: 1.4rem; line-height: 2; margin-top: 20px;">
+                        ✅ Por qué las estimaciones tradicionales fallan<br>
+                        ✅ Cómo gestionar la incertidumbre con el Cono<br>
+                        ✅ Métodos de estimación: PERT, Agile, CCPM<br>
+                        ✅ Cómo proteger proyectos con buffers estratégicos<br>
+                        ✅ Cuándo usar cada método según el contexto
+                    </p>
+                </div>
+                <p style="font-size: 1.4rem; margin-top: 60px;">
+                    <strong style="color: #667eea;">Alejandro Sfrede</strong><br>
+                    Área de Arquitectura
+                </p>
+                <div style="margin-top: 50px;">
+                    <a href="clase2.html" class="btn" style="display: inline-block; text-decoration: none; margin-right: 20px;">
+                        ← Clase 2
+                    </a>
+                    <a href="index.html" class="btn" style="display: inline-block; text-decoration: none; background: rgba(102, 126, 234, 0.2); border-color: #667eea;">
+                        🏠 Volver al Portal
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn" id="prevBtn" onclick="changeSlide(-1)">← Anterior</button>
+        <button class="btn" id="nextBtn" onclick="changeSlide(1)">Siguiente →</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        function showSlide(n) {
+            if (n >= totalSlides) n = totalSlides - 1;
+            if (n < 0) n = 0;
+
+            currentSlide = n;
+
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                }
+            });
+
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            document.getElementById('slideCounter').textContent = `${currentSlide + 1} / ${totalSlides}`;
+
+            document.getElementById('prevBtn').disabled = (currentSlide === 0);
+            document.getElementById('nextBtn').disabled = (currentSlide === totalSlides - 1);
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                changeSlide(-1);
+            } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+                e.preventDefault();
+                changeSlide(1);
+            } else if (e.key === 'Home') {
+                showSlide(0);
+            } else if (e.key === 'End') {
+                showSlide(totalSlides - 1);
+            }
+        });
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) {
+                changeSlide(1);
+            }
+            if (touchEndX > touchStartX + 50) {
+                changeSlide(-1);
+            }
+        }
+
+        showSlide(0);
+    </script>
+</body>
+</html>

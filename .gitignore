@@ -1,0 +1,50 @@
+# Archivos comprimidos y backups
+*.rar
+*.zip
+*.7z
+*.tar.gz
+*.bak
+
+# Archivos de sistema Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Archivos de sistema macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Archivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Archivos temporales
+*.tmp
+*.temp
+nul
+
+# Directorios de dependencias (si se usan)
+node_modules/
+vendor/
+
+# Archivos de logs
+*.log
+
+# Archivos de configuración local
+.env
+.env.local
+config.local.*
+
+# Carpetas de salida/build
+dist/
+build/
+out/
+
+# Archivos de MS Project temporales
+~$*.mpp
+*.mpp~
