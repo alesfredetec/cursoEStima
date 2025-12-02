@@ -39,7 +39,8 @@
 
 [PAUSA - sonreír]
 
-Soy Alejandro Sfrede, del Área de Arquitectura, y durante las próximas 9 horas vamos a hablar de un tema que nos afecta a todos: **¿por qué diablos nuestras estimaciones siempre salen mal?**
+Soy Alejandro Sfrede, del Área de Arquitectura, y durante las próximas 9 horas vamos a hablar de un tema que nos afecta a todos:
+ **¿por qué  nuestras estimaciones siempre salen mal?**
 
 [PAUSA]
 

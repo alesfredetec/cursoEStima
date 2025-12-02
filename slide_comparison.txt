@@ -1,0 +1,147 @@
+========================================================================================================================
+TODOS LOS SLIDES HTML EN CLASE1_PROFESOR.HTML
+========================================================================================================================
+#      Comentario HTML                                    Titulo <h2> en Contenido                                    
+------------------------------------------------------------------------------------------------------------------------
+1      Portada                                            Agenda de la Clase                                          
+3      El Problema Fundamental                            El Problema Fundamental                                     
+4      Cono de Incertidumbre - Introducción               El Cono de Incertidumbre                                    
+5      El Error Tradicional                               El Error del Enfoque Tradicional                            
+6      La Solución Ágil                                   La Solución Ágil                                            
+7      Gráfico del Cono                                   Gráfico: El Cono de Incertidumbre                           
+7b     Factores                                           Factores que Afectan la Estimación                          
+7c     Clasificación de Riesgos                           Clasificación de Riesgos                                    
+7d     Matriz de Riesgos                                  Matriz de Riesgos: Probabilidad vs Impacto                  
+8      Investigación del Desafío del Malvavisco           Investigación: El Desafío del Malvavisco                    
+9      Análisis del Comportamiento                        Análisis: Por Qué Fallan los Expertos                       
+10     Lecciones del Malvavisco para Proyectos            Lecciones para Gestión de Proyectos                         
+11     Break                                              Preguntas y Consultas                                       
+12     Factores Psicológicos                              Factores Psicológicos: Los Enemigos Ocultos                 
+13     Ley de Parkinson                                   Ley de Parkinson                                            
+14     Síndrome del Estudiante                            Síndrome del Estudiante                                     
+15     Ciclo Vicioso                                      El Ciclo Vicioso del Padding                                
+16     Caso Microsoft                                     Estudios de Caso: Ley de Parkinson en Proyectos Reales      
+17     Estudio MIT                                        Investigación: Síndrome del Estudiante en Acción            
+18     Conclusión Empírica                                Conclusión: Evidencia Empírica                              
+19     La Pregunta Gancho                                 La Pregunta Crítica                                         
+20     Resumen                                            Resumen de la Clase 1                                       
+========================================================================================================================
+
+Total slides HTML encontrados: 22
+
+========================================================================================================================
+TODOS LOS SPEECH SCRIPTS EN speechDataClase1
+========================================================================================================================
+Key          Title                                              Duration       
+------------------------------------------------------------------------------------------------------------------------
+slide1       Portada                                            2 min          
+slide2       Agenda de la Clase                                 3 min          
+slide3       El Problema Fundamental                            5 min          
+slide4       El Cono de Incertidumbre                           8 min          
+slide5       El Error del Enfoque Tradicional                   5 min          
+slide6       La Solución Ágil                                   7 min          
+slide7       Gráfico del Cono                                   15 min         
+slide8       Investigación del Desafío del Malvavisco           10 min         
+slide9       Análisis del Comportamiento                        10 min         
+slide10      Lecciones del Malvavisco para Proyectos            10 min         
+slide11      Break                                              2 min          
+slide12      Factores Psicológicos                              5 min          
+slide13      Ley de Parkinson                                   8 min          
+slide14      Síndrome del Estudiante                            8 min          
+slide15      Ciclo Vicioso                                      12 min         
+slide16      Caso Microsoft                                     12 min         
+slide17      Estudio MIT                                        13 min         
+slide18      Conclusión Empírica                                10 min         
+slide19      La Pregunta Gancho                                 5 min          
+slide20      Resumen                                            5 min          
+slide21      Fin                                                5 min          
+========================================================================================================================
+
+Total speech scripts encontrados: 21
+
+========================================================================================================================
+MAPEO: POSICION EN NAVEGACION -> HTML SLIDE -> SPEECH SCRIPT
+========================================================================================================================
+Pos   HTML #   HTML Title (h2)                               Speech       Speech Title                                  Match     
+------------------------------------------------------------------------------------------------------------------------
+1     1        Agenda de la Clase                            slide1       Portada                                       DESAJUSTE 
+2     3        El Problema Fundamental                       slide3       El Problema Fundamental                       OK        
+3     4        El Cono de Incertidumbre                      slide4       El Cono de Incertidumbre                      OK        
+4     5        El Error del Enfoque Tradicional              slide5       El Error del Enfoque Tradicional              OK        
+5     6        La Solución Ágil                              slide6       La Solución Ágil                              OK        
+6     7        Gráfico: El Cono de Incertidumbre             slide7       Gráfico del Cono                              DESAJUSTE 
+7     7b       Factores que Afectan la Estimación            slide7       Gráfico del Cono                              DESAJUSTE 
+8     7c       Clasificación de Riesgos                      slide7       Gráfico del Cono                              DESAJUSTE 
+9     7d       Matriz de Riesgos: Probabilidad vs Impacto    slide7       Gráfico del Cono                              DESAJUSTE 
+10    8        Investigación: El Desafío del Malvavisco      slide8       Investigación del Desafío del Malvavisco      SIMILAR   
+11    9        Análisis: Por Qué Fallan los Expertos         slide9       Análisis del Comportamiento                   DESAJUSTE 
+12    10       Lecciones para Gestión de Proyectos           slide10      Lecciones del Malvavisco para Proyectos       SIMILAR   
+13    11       Preguntas y Consultas                         slide11      Break                                         DESAJUSTE 
+14    12       Factores Psicológicos: Los Enemigos Ocultos   slide12      Factores Psicológicos                         OK        
+15    13       Ley de Parkinson                              slide13      Ley de Parkinson                              OK        
+16    14       Síndrome del Estudiante                       slide14      Síndrome del Estudiante                       OK        
+17    15       El Ciclo Vicioso del Padding                  slide15      Ciclo Vicioso                                 OK        
+18    16       Estudios de Caso: Ley de Parkinson en Proyec  slide16      Caso Microsoft                                DESAJUSTE 
+19    17       Investigación: Síndrome del Estudiante en Ac  slide17      Estudio MIT                                   DESAJUSTE 
+20    18       Conclusión: Evidencia Empírica                slide18      Conclusión Empírica                           DESAJUSTE 
+21    19       La Pregunta Crítica                           slide19      La Pregunta Gancho                            SIMILAR   
+22    20       Resumen de la Clase 1                         slide20      Resumen                                       OK        
+========================================================================================================================
+
+RESUMEN:
+Total slides HTML: 22
+Total speech scripts: 21
+Desajustes/Faltantes: 10
+
+DESAJUSTES ENCONTRADOS:
+------------------------------------------------------------------------------------------------------------------------
+
+Posición navegación: 1 (HTML Slide 1)
+  HTML muestra: Agenda de la Clase
+  Speech dice:  Portada (slide1)
+  Status:       DESAJUSTE
+
+Posición navegación: 6 (HTML Slide 7)
+  HTML muestra: Gráfico: El Cono de Incertidumbre
+  Speech dice:  Gráfico del Cono (slide7)
+  Status:       DESAJUSTE
+
+Posición navegación: 7 (HTML Slide 7b)
+  HTML muestra: Factores que Afectan la Estimación
+  Speech dice:  Gráfico del Cono (slide7)
+  Status:       DESAJUSTE
+
+Posición navegación: 8 (HTML Slide 7c)
+  HTML muestra: Clasificación de Riesgos
+  Speech dice:  Gráfico del Cono (slide7)
+  Status:       DESAJUSTE
+
+Posición navegación: 9 (HTML Slide 7d)
+  HTML muestra: Matriz de Riesgos: Probabilidad vs Impacto
+  Speech dice:  Gráfico del Cono (slide7)
+  Status:       DESAJUSTE
+
+Posición navegación: 11 (HTML Slide 9)
+  HTML muestra: Análisis: Por Qué Fallan los Expertos
+  Speech dice:  Análisis del Comportamiento (slide9)
+  Status:       DESAJUSTE
+
+Posición navegación: 13 (HTML Slide 11)
+  HTML muestra: Preguntas y Consultas
+  Speech dice:  Break (slide11)
+  Status:       DESAJUSTE
+
+Posición navegación: 18 (HTML Slide 16)
+  HTML muestra: Estudios de Caso: Ley de Parkinson en Proyectos Reales
+  Speech dice:  Caso Microsoft (slide16)
+  Status:       DESAJUSTE
+
+Posición navegación: 19 (HTML Slide 17)
+  HTML muestra: Investigación: Síndrome del Estudiante en Acción
+  Speech dice:  Estudio MIT (slide17)
+  Status:       DESAJUSTE
+
+Posición navegación: 20 (HTML Slide 18)
+  HTML muestra: Conclusión: Evidencia Empírica
+  Speech dice:  Conclusión Empírica (slide18)
+  Status:       DESAJUSTE

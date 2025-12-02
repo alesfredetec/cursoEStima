@@ -1,0 +1,31 @@
+================================================================================
+CLASE 3 SLIDE COMPARISON REPORT
+================================================================================
+
+Extracting slides from clase3.html...
+  Found 32 slides
+Extracting slides from clase3_profesor.html...
+  Found 32 slides
+
+Comparing slide content...
+
+WARNING - Found 1 differences:
+
+Slide 32: CONTENT LENGTH DIFFERS
+  Length difference: 1903 chars (clase3: 2102, profesor: 4005)
+  Title: ¡Fin del Curso!
+
+================================================================================
+ALL SLIDE TITLES (clase3.html)
+================================================================================
+Traceback (most recent call last):
+  File "C:\tmp\cursoEStima\compare_slides.py", line 154, in <module>
+    main()
+    ~~~~^^
+  File "C:\tmp\cursoEStima\compare_slides.py", line 151, in main
+    print(f"{slide['num']:2d}. {title}")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f4cb' in position 4: character maps to <undefined>

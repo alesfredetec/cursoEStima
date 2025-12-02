@@ -39,6 +39,7 @@ vendor/
 .env
 .env.local
 config.local.*
+config.js
 
 # Carpetas de salida/build
 dist/
