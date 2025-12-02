@@ -635,8 +635,12 @@
             }
         }
     </style>
-    <!-- Load external configuration (API keys, etc.) -->
-    <script src="config.js"></script>
+    <!-- Load external configuration (API keys, etc.) with fallback -->
+    <script>
+        // Initialize CONFIG as empty object if config.js doesn't load
+        window.CONFIG = window.CONFIG || { OPENAI_API_KEY: '' };
+    </script>
+    <script src="config.js" onerror="console.warn('config.js not found - OpenAI TTS disabled')"></script>
 </head>
 <body>
     <div class="background-gradient"></div>
