@@ -1,0 +1,2228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 2: Métodos de Estimación (Versión Profesor)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .background-gradient {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0.1;
+        }
+
+        /* Main Layout: 70/30 Split */
+        .main-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .slide-area {
+            width: 70%;
+            height: 100vh;
+            position: relative;
+        }
+
+        .sidebar {
+            width: 30%;
+            height: 100vh;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(102, 126, 234, 0.3);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(100%);
+        }
+
+        /* Sidebar Header */
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-duration {
+            font-size: 0.9rem;
+            color: #a0a0a0;
+        }
+
+        /* Sidebar Body */
+        .sidebar-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .sidebar-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-body::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-body::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 3px;
+        }
+
+        .speech-content {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: #d0d0d0;
+            white-space: pre-wrap;
+        }
+
+        /* Visual Markers */
+        .marker {
+            display: inline-block;
+            padding: 2px 8px;
+            margin: 0 4px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .marker-pausa {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.4);
+        }
+
+        .marker-enfasis {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.4);
+        }
+
+        .marker-transicion {
+            background: rgba(81, 207, 102, 0.2);
+            color: #51cf66;
+            border: 1px solid rgba(81, 207, 102, 0.4);
+        }
+
+        .marker-leer {
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+            border: 1px solid rgba(102, 126, 234, 0.4);
+        }
+
+        .marker-preguntas {
+            background: rgba(118, 75, 162, 0.2);
+            color: #764ba2;
+            border: 1px solid rgba(118, 75, 162, 0.4);
+        }
+
+        /* Sidebar Footer (TTS Controls) */
+        .sidebar-footer {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(102, 126, 234, 0.2);
+            background: rgba(20, 20, 20, 0.9);
+        }
+
+        .tts-label {
+            font-size: 0.85rem;
+            color: #a0a0a0;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .tts-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .tts-btn {
+            flex: 1;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .tts-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .tts-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .tts-btn.active {
+            background: rgba(81, 207, 102, 0.15);
+            border-color: #51cf66;
+            color: #51cf66;
+        }
+
+        .speed-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .speed-btn {
+            flex: 1;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 4px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .speed-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+        }
+
+        .speed-btn.active {
+            background: rgba(118, 75, 162, 0.2);
+            border-color: #764ba2;
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        /* Voice Selector Dropdown */
+        .voice-selector {
+            width: 100%;
+            background: rgba(30, 30, 40, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .voice-selector:hover {
+            background: rgba(30, 30, 40, 0.8);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .voice-selector option {
+            background: #1a1a2e;
+            color: #ffffff;
+            padding: 6px;
+        }
+
+        /* Toggle Sidebar Button */
+        .toggle-sidebar-btn {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background: rgba(102, 126, 234, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            color: #ffffff;
+            padding: 10px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            z-index: 200;
+        }
+
+        .toggle-sidebar-btn:hover {
+            background: rgba(102, 126, 234, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* Original Slide Styles */
+        .slide-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 40px 120px 40px;
+            position: relative;
+        }
+
+        .slide {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-content {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .slide-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .slide-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .slide-content::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 10px;
+        }
+
+        .slide-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.8);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 25px;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        p, li {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            color: #d0d0d0;
+            margin-bottom: 15px;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        li {
+            padding: 15px 0;
+            padding-left: 40px;
+            position: relative;
+        }
+
+        li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .formula {
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            text-align: center;
+            color: #667eea;
+        }
+
+        .highlight {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .instructor-info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px 20px;
+            font-size: 0.9rem;
+            color: #c0c0c0;
+            z-index: 100;
+        }
+
+        .instructor-info strong {
+            color: #667eea;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 35%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            width: 70%;
+            background: rgba(102, 126, 234, 0.2);
+            z-index: 100;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(100%);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: #c0c0c0;
+            z-index: 100;
+        }
+
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(102, 126, 234, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .home-btn:hover {
+            background: rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 25px;
+        }
+
+        .box {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .workshop {
+            background: rgba(118, 75, 162, 0.1);
+            border: 2px solid rgba(118, 75, 162, 0.4);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 25px 0;
+        }
+
+        .workshop h3 {
+            color: #764ba2;
+            margin-bottom: 20px;
+        }
+
+        .emoji {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        th {
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-container {
+                flex-direction: column;
+            }
+
+            .slide-area {
+                width: 100%;
+                height: 70vh;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: 30vh;
+                border-left: none;
+                border-top: 1px solid rgba(102, 126, 234, 0.3);
+            }
+
+            .sidebar.hidden {
+                transform: translateY(100%);
+            }
+
+            .controls {
+                left: 50%;
+            }
+
+            .progress-bar {
+                width: 100%;
+            }
+
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .slide-container {
+                padding: 70px 20px 100px 20px;
+            }
+
+            .slide-content {
+                padding: 25px;
+                max-height: calc(70vh - 170px);
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            p, li {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+    <!-- Load external configuration (API keys, etc.) -->
+    <script src="config.js"></script>
+</head>
+<body>
+    <div class="background-gradient"></div>
+
+    <div class="main-container">
+        <!-- Left Side: Slides (70%) -->
+        <div class="slide-area">
+            <div class="progress-bar">
+                <div class="progress-bar-fill" id="progressBar"></div>
+            </div>
+
+            <div class="instructor-info">
+                <strong>Alejandro Sfrede</strong> - Área de Arquitectura
+            </div>
+
+            <a href="index.html" class="home-btn">🏠 Portal</a>
+            <button class="toggle-sidebar-btn" id="toggleSidebar" onclick="toggleSidebar()">📝 Speech</button>
+
+            <div class="slide-counter" id="slideCounter">1 / 21</div>
+
+            <div class="slide-container">
+        <!-- Slide 1: Portada -->
+        <div class="slide active">
+            <div class="slide-content">
+                <h1>Clase 2:<br>Métodos de Estimación</h1>
+                <h2>Tradicionales y Ágiles</h2>
+                <p style="font-size: 1.5rem; margin-top: 40px;">
+                    <span class="highlight">Dia:</span> 2<br>
+                    <span class="highlight">Objetivo:</span> Dominar métodos clásicos y ágiles de estimación
+                </p>
+                <p style="margin-top: 30px; font-size: 1.2rem; color: #a0a0a0;">
+                    Presiona → o ESPACIO para continuar
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 2: Agenda -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📋 Agenda de la Clase</h2>
+                <ul style="font-size: 1.4rem;">
+                    <li>Métodos Clásicos: PERT y CPM  </li>
+                    <li>Estimación Ágil: T-Shirt Sizing y Story Points  </li>
+                  
+                    <li>Planning Poker: Demostración y Análisis Detallado  </li>
+                    <li>Velocidad, Refinamiento Progresivo y Mejores Prácticas  </li>
+                    <li>Síntesis y Cuadro Comparativo  </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 3: Intro PERT -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📊 PERT: Estimación de 3 Puntos</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    <strong>Program Evaluation and Review Technique</strong><br>
+                    Primer intento matemático de gestionar la incertidumbre de las tareas
+                </p>
+                <h3>Los 3 Puntos de Datos:</h3>
+                <div class="three-column">
+                    <div class="box" style="background: rgba(81, 207, 102, 0.1); border-color: rgba(81, 207, 102, 0.3);">
+                        <h3 style="color: #51cf66; text-align: center;">O</h3>
+                        <p style="text-align: center;"><strong>Optimista</strong></p>
+                        <p style="text-align: center; font-size: 1.1rem;">El mejor escenario posible</p>
+                    </div>
+                    <div class="box" style="background: rgba(255, 193, 7, 0.1); border-color: rgba(255, 193, 7, 0.3);">
+                        <h3 style="color: #ffc107; text-align: center;">M</h3>
+                        <p style="text-align: center;"><strong>Más Probable</strong></p>
+                        <p style="text-align: center; font-size: 1.1rem;">El escenario realista</p>
+                    </div>
+                    <div class="box" style="background: rgba(255, 107, 107, 0.1); border-color: rgba(255, 107, 107, 0.3);">
+                        <h3 style="color: #ff6b6b; text-align: center;">P</h3>
+                        <p style="text-align: center;"><strong>Pesimista</strong></p>
+                        <p style="text-align: center; font-size: 1.1rem;">El peor escenario ("Ley de Murphy")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Fórmulas PERT -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🧮 Fórmulas PERT</h2>
+                <h3>1. Duración Esperada</h3>
+                <p>Con los tres puntos, calculamos una media ponderada (distribución Beta):</p>
+                <div class="formula">
+                    Duración Esperada = (O + 4M + P) / 6
+                </div>
+                <p style="text-align: center; color: #a0a0a0; margin-bottom: 40px;">
+                    La fórmula da más peso (4x) a la estimación "Más Probable"
+                </p>
+
+                <h3>2. Desviación Estándar (Incertidumbre)</h3>
+                <p>Mide cuán incierta es la tarea:</p>
+                <div class="formula">
+                    SD = (P - O) / 6
+                </div>
+                <p style="text-align: center; color: #a0a0a0;">
+                    Un rango amplio (P - O) significa ALTA incertidumbre<br>
+                    Es, en efecto, una medida numérica del "Cono de Incertidumbre"
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 5: Ejemplo PERT -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>💡 Ejemplo Práctico PERT</h2>
+                <div class="box">
+                    <h3>Tarea: Migrar base de datos a la nube</h3>
+                    <div style="margin: 30px 0; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                        <p style="font-size: 1.4rem;">
+                            <strong style="color: #51cf66;">O (Optimista):</strong> 5 días<br>
+                            <strong style="color: #ffc107;">M (Más Probable):</strong> 10 días<br>
+                            <strong style="color: #ff6b6b;">P (Pesimista):</strong> 25 días
+                        </p>
+                    </div>
+                    <h3 style="margin-top: 30px;">Cálculos:</h3>
+                    <div class="formula" style="text-align: left; font-size: 1.3rem;">
+                        Duración Esperada = (5 + 4×10 + 25) / 6<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= (5 + 40 + 25) / 6<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 70 / 6 = 11.67 días ≈ 12 días
+                    </div>
+                    <div class="formula" style="text-align: left; font-size: 1.3rem;">
+                        SD = (25 - 5) / 6 = 20 / 6 = 3.33 días
+                    </div>
+                    <p style="margin-top: 20px; text-align: center; font-size: 1.2rem; color: #667eea;">
+                        📊 Estimación final: <strong>12 días ± 3.3 días</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: CPM Introducción -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🛤️ CPM: Critical Path Method</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Técnica que identifica la <span class="highlight">secuencia de tareas dependientes más larga</span><br>
+                    Esta secuencia determina la duración TOTAL del proyecto
+                </p>
+                <div class="two-column">
+                    <div class="box">
+                        <h3>Conceptos Clave</h3>
+                        <ul style="font-size: 1.2rem;">
+                            <li><strong>Ruta Crítica:</strong> Secuencia más larga</li>
+                            <li><strong>Holgura (Slack):</strong> Tiempo que una tarea NO crítica puede retrasarse</li>
+                            <li>Tareas críticas tienen holgura = 0</li>
+                        </ul>
+                    </div>
+                    <div class="box" style="background: rgba(255, 107, 107, 0.1); border-color: rgba(255, 107, 107, 0.3);">
+                        <h3 style="color: #ff6b6b;">⚠️ Defectos de CPM</h3>
+                        <ul style="font-size: 1.2rem;">
+                            <li>La holgura es vulnerable a Parkinson</li>
+                            <li>Asume recursos ILIMITADOS</li>
+                            <li>Ignora cuellos de botella de recursos</li>
+                        </ul>
+                    </div>
+                </div>
+                <p style="margin-top: 30px; text-align: center; font-size: 1.3rem; color: #a0a0a0;">
+                    CPM es matemáticamente correcto, pero psicológicamente ingenuo
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 7: Estimación Ágil Intro -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🚀 Estimación Ágil: El Cambio de Paradigma</h2>
+                <div style="padding: 40px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border: 2px solid #667eea; border-radius: 20px;">
+                    <h3 style="text-align: center; color: #667eea;">Del Tiempo Absoluto al Tamaño Relativo</h3>
+                    <div class="two-column" style="margin-top: 30px;">
+                        <div>
+                            <h3 style="color: #ff6b6b;">❌ Estimación Absoluta</h3>
+                            <p>Unidades de <strong>tiempo</strong> (horas, días)</p>
+                            <ul style="font-size: 1.1rem;">
+                                <li>Extremadamente difícil</li>
+                                <li>Propenso a errores</li>
+                                <li>Consume mucho tiempo</li>
+                                <li>Fomenta el conflicto (padding)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 style="color: #51cf66;">✅ Estimación Relativa</h3>
+                            <p>Estimar el <strong>tamaño</strong> comparando con otras tareas</p>
+                            <ul style="font-size: 1.1rem;">
+                                <li>Más intuitivo</li>
+                                <li>Menos propenso a errores</li>
+                                <li>Rápido</li>
+                                <li>Reduce conflictos</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <p style="margin-top: 30px; text-align: center; font-size: 1.3rem;">
+                    "Esta tarea (B) es <strong>el doble de grande</strong> que aquella (A)"
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 8: T-Shirt Sizing -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>👕 Técnica 1: T-Shirt Sizing</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Método rápido de estimación relativa de alto nivel
+                </p>
+                <div class="fibonacci" style="justify-content: space-between;">
+                    <div class="fib-card" style="min-width: 100px; font-size: 1.2rem;">XS</div>
+                    <div class="fib-card" style="min-width: 100px; font-size: 1.4rem;">S</div>
+                    <div class="fib-card" style="min-width: 100px; font-size: 1.6rem;">M</div>
+                    <div class="fib-card" style="min-width: 100px; font-size: 1.8rem;">L</div>
+                    <div class="fib-card" style="min-width: 100px; font-size: 2rem;">XL</div>
+                    <div class="fib-card" style="min-width: 100px; font-size: 2.2rem;">XXL</div>
+                </div>
+                <h3 style="margin-top: 30px;">Características:</h3>
+                <ul style="font-size: 1.3rem;">
+                    <li><strong>Uso común:</strong> Roadmaps trimestrales, estimación de Epics</li>
+                    <li><strong>Ventaja:</strong> Rápido e intuitivo para todos</li>
+                    <li><strong>Multidimensional:</strong> Combina alcance, esfuerzo, complejidad y tiempo</li>
+                    <li><strong>Objetivo:</strong> Obtener "rango de magnitud" sin debates numéricos</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 9: Story Points -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🔢 Técnica 2: Story Points</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    La unidad de estimación relativa más común en <strong>Scrum</strong>
+                </p>
+                <div class="box">
+                    <h3>¿Qué es un Story Point?</h3>
+                    <p style="font-size: 1.2rem;">Un número abstracto que combina:</p>
+                    <div class="three-column" style="margin-top: 20px;">
+                        <div style="text-align: center;">
+                            <p class="emoji" style="font-size: 2rem;">💪</p>
+                            <p><strong>Esfuerzo</strong></p>
+                            <p style="font-size: 1rem;">Cuánto trabajo</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <p class="emoji" style="font-size: 2rem;">🧩</p>
+                            <p><strong>Complejidad</strong></p>
+                            <p style="font-size: 1rem;">Cuán difícil</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <p class="emoji" style="font-size: 2rem;">❓</p>
+                            <p><strong>Incertidumbre</strong></p>
+                            <p style="font-size: 1rem;">Cuántas incógnitas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Fibonacci -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🌀 La Secuencia de Fibonacci</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Story Points NO usan escala lineal. Usan Fibonacci:
+                </p>
+                <div class="fibonacci">
+                    <div class="fib-card">0</div>
+                    <div class="fib-card">1</div>
+                    <div class="fib-card">2</div>
+                    <div class="fib-card">3</div>
+                    <div class="fib-card">5</div>
+                    <div class="fib-card">8</div>
+                    <div class="fib-card">13</div>
+                    <div class="fib-card">21</div>
+                </div>
+                <div style="margin-top: 40px; padding: 30px; background: rgba(102, 126, 234, 0.1); border: 2px solid #667eea; border-radius: 15px;">
+                    <h3 style="color: #667eea;">¿Por qué Fibonacci y no 1,2,3,4,5...?</h3>
+                    <ul style="font-size: 1.2rem;">
+                        <li>La escala nos <strong>obliga a reconocer la incertidumbre</strong></li>
+                        <li>Diferencia entre 1 y 2 es pequeña (certeza alta)</li>
+                        <li>Diferencia entre 13 y 21 es ENORME (incertidumbre alta)</li>
+                        <li>Si dudas entre 13 y 21, estás admitiendo ALTA incertidumbre</li>
+                        <li>Captura la esencia del Cono: A mayor tamaño, menor certeza</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Break -->
+        <div class="slide">
+            <div class="slide-content" style="text-align: center;">
+                <p class="emoji">☕</p>
+                <h2>Preguntas ? </h2>
+                <p style="font-size: 1.4rem; margin-top: 30px; color: #a0a0a0;">
+                    Próximo: Taller de Planning Poker  
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 12: Planning Poker Intro -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🎴 Planning Poker</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Método de <span class="highlight">consenso colaborativo</span> para asignar Story Points
+                </p>
+                <div class="box" style="background: rgba(118, 75, 162, 0.1); border-color: rgba(118, 75, 162, 0.3);">
+                    <p class="emoji" style="text-align: center;">🎯</p>
+                    <h3 style="color: #764ba2; text-align: center;">Objetivo Central</h3>
+                    <p style="font-size: 1.3rem; text-align: center;">
+                        El objetivo NO es obtener un número exacto.<br>
+                        Es generar <strong>CONSENSO</strong> basado en <strong>DISCUSIÓN</strong>
+                        y exposición de <strong>SUPOSICIONES OCULTAS</strong>
+                    </p>
+                </div>
+                <h3 style="margin-top: 30px;">Elementos Clave del Proceso:</h3>
+                <ul style="font-size: 1.3rem;">
+                    <li>Votación <strong>simultánea y anónima</strong> (evita anclaje)</li>
+                    <li>Discusión de <strong>estimaciones extremas</strong> (identificación de riesgos)</li>
+                    <li>Re-votación tras aprendizaje colectivo</li>
+                    <li>Cartas con secuencia Fibonacci (refleja incertidumbre)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 13: Caso de Estudio - Backlog -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📋 Caso de Estudio: Backlog de Autenticación</h2>
+                <p style="font-size: 1.3rem; margin-bottom: 20px;">
+                    Vamos a analizar cómo un equipo real estima estas historias de usuario:
+                </p>
+                <table style="font-size: 1rem;">
+                    <thead>
+                        <tr>
+                            <th style="width: 10%;">ID</th>
+                            <th>Historia de Usuario</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>HU-1</strong></td>
+                            <td><em>Como usuario nuevo, quiero poder registrarme con mi email y contraseña, para poder acceder al sistema.</em></td>
+                        </tr>
+                        <tr style="background: rgba(81, 207, 102, 0.1);">
+                            <td><strong>HU-2</strong></td>
+                            <td><em>Como usuario registrado, quiero poder iniciar sesión, para ver mi panel de control.</em> <span style="color: #51cf66;">← Referencia: 3 puntos</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>HU-3</strong></td>
+                            <td><em>Como usuario que olvidó su contraseña, quiero poder solicitar un enlace de reseteo por email, para recuperar el acceso.</em></td>
+                        </tr>
+                        <tr>
+                            <td><strong>HU-4</strong></td>
+                            <td><em>Como administrador, quiero un reporte de todos los usuarios registrados en el último mes, para analizar el crecimiento.</em></td>
+                        </tr>
+                        <tr>
+                            <td><strong>HU-5</strong></td>
+                            <td><em>Como usuario, quiero poder pagar mi suscripción con tarjeta de crédito, para acceder al contenido premium.</em></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="margin-top: 20px; text-align: center; font-size: 1.2rem; color: #667eea;">
+                    HU-2 (Login) ya fue completada en sprint anterior → sirve como <strong>línea base</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 14: Proceso Planning Poker -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🎯 Proceso de Planning Poker (Paso a Paso)</h2>
+                <div class="box" style="padding: 30px;">
+                    <h3 style="color: #667eea;">1. Establecer Línea Base</h3>
+                    <p>Product Owner presenta HU-2 (Login). Todos acuerdan: "Esto es un <strong>3</strong>"</p>
+                </div>
+                <div class="box" style="padding: 30px; margin-top: 20px;">
+                    <h3 style="color: #667eea;">2. Presentar Historia</h3>
+                    <p>PO lee HU-3 (Reseteo de Contraseña) y explica el objetivo</p>
+                </div>
+                <div class="box" style="padding: 30px; margin-top: 20px;">
+                    <h3 style="color: #667eea;">3. Clarificar Dudas</h3>
+                    <p>Equipo hace preguntas: "¿El enlace caduca?" "¿Se valida el email?"</p>
+                </div>
+                <div class="box" style="padding: 30px; margin-top: 20px;">
+                    <h3 style="color: #667eea;">4. Votar Simultáneamente</h3>
+                    <p>Facilitador: "1, 2, 3... ¡Voten!" Todos eligen carta y ponen boca abajo</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 15: El Corazón del Taller -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>💬 La Discusión: El Corazón del Taller</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Todos revelan cartas <strong>SIMULTÁNEAMENTE</strong>: 3, 5, 5, 8, 13
+                </p>
+                <div class="workshop">
+                    <h3>Facilitador NO promedia. Pide a los EXTREMOS que justifiquen:</h3>
+                    <div style="margin-top: 30px; padding: 25px; background: rgba(255, 107, 107, 0.1); border: 2px solid rgba(255, 107, 107, 0.3); border-radius: 10px;">
+                        <p style="font-size: 1.2rem;">
+                            <strong style="color: #ff6b6b;">Facilitador al que votó 13:</strong><br>
+                            "¿Qué riesgo o complejidad ve que los demás no vieron?"
+                        </p>
+                        <p style="margin-top: 20px; font-size: 1.1rem; font-style: italic;">
+                            "Esto implica enviar email, generar token único, almacenar token,
+                            validar expiración, construir página de reseteo. <strong>Hay mucha incertidumbre.</strong>"
+                        </p>
+                    </div>
+                    <div style="margin-top: 20px; padding: 25px; background: rgba(81, 207, 102, 0.1); border: 2px solid rgba(81, 207, 102, 0.3); border-radius: 10px;">
+                        <p style="font-size: 1.2rem;">
+                            <strong style="color: #51cf66;">Facilitador al que votó 3:</strong><br>
+                            "¿Por qué piensa que es igual de simple que el login?"
+                        </p>
+                        <p style="margin-top: 20px; font-size: 1.1rem; font-style: italic;">
+                            "Ah, no había pensado en la generación del token ni en el servicio de email.
+                            Solo pensé en el formulario."
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 16: Re-votación -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🔄 Re-votación y Consenso</h2>
+                <div style="padding: 40px; background: rgba(102, 126, 234, 0.1); border: 2px solid #667eea; border-radius: 20px;">
+                    <p style="font-size: 1.5rem; text-align: center; margin-bottom: 30px;">
+                        "OK, hemos <strong>APRENDIDO</strong> algo. Volvamos a votar."
+                    </p>
+                    <div class="two-column">
+                        <div>
+                            <h3 style="color: #667eea; text-align: center;">Primera Votación</h3>
+                            <p style="text-align: center; font-size: 2rem; margin: 20px 0;">3, 5, 5, 8, 13</p>
+                            <p style="text-align: center; color: #ff6b6b;">Sin consenso</p>
+                        </div>
+                        <div>
+                            <h3 style="color: #667eea; text-align: center;">Segunda Votación</h3>
+                            <p style="text-align: center; font-size: 2rem; margin: 20px 0;">8, 5, 8, 8, 5</p>
+                            <p style="text-align: center; color: #51cf66;">Convergiendo...</p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 40px; padding: 25px; background: rgba(81, 207, 102, 0.1); border-radius: 10px; text-align: center;">
+                        <p style="font-size: 1.8rem; color: #51cf66; font-weight: 600;">
+                            ✅ Tras breve discusión final: Todos acuerdan un <strong>8</strong>
+                        </p>
+                    </div>
+                </div>
+                <p style="margin-top: 30px; text-align: center; font-size: 1.3rem; color: #a0a0a0;">
+                    Se asigna 8 a HU-3 y se pasa a la siguiente historia
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 17: Debriefing Planning Poker -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>💡 Debriefing: Lecciones del Planning Poker</h2>
+                <div style="padding: 40px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border: 2px solid #667eea; border-radius: 20px;">
+                    <h3 style="color: #667eea; text-align: center; margin-bottom: 30px;">
+                        El objetivo NO era el número (el 8)
+                    </h3>
+                    <h3 style="text-align: center; font-size: 2rem; color: #ffffff;">
+                        Era la CONVERSACIÓN que ocurrió entre el 13 y el 3
+                    </h3>
+                </div>
+                <h3 style="margin-top: 40px;">¿Por qué funciona Planning Poker?</h3>
+                <ul style="font-size: 1.3rem;">
+                    <li><strong>Votación anónima y simultánea:</strong> Previene anclaje (junior no copia a senior)</li>
+                    <li><strong>Exposición de suposiciones:</strong> El "13" vio el riesgo del token que otros no vieron</li>
+                    <li><strong>Identificación temprana de riesgos:</strong> Descubrimos complejidades ocultas</li>
+                    <li><strong>Construcción de consenso:</strong> Todo el equipo entiende y acuerda</li>
+                    <li><strong>Aprendizaje colectivo:</strong> El conocimiento se distribuye</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 18: Velocidad -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📈 Velocidad: De Points a Forecasting</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Una vez que el equipo estima en Story Points, puede calcular su <span class="highlight">VELOCIDAD</span>
+                </p>
+                <div class="box">
+                    <h3>¿Qué es Velocidad?</h3>
+                    <p style="font-size: 1.3rem;">
+                        Cantidad de Story Points que el equipo completa <strong>por Sprint</strong>
+                    </p>
+                    <div style="margin: 30px 0; padding: 25px; background: rgba(102, 126, 234, 0.1); border-radius: 10px;">
+                        <p style="text-align: center; font-size: 1.5rem;">
+                            <strong>Ejemplo:</strong><br>
+                            Sprint 1: 23 puntos completados<br>
+                            Sprint 2: 27 puntos completados<br>
+                            Sprint 3: 25 puntos completados<br><br>
+                            <span style="color: #667eea; font-size: 1.8rem;">Velocidad promedio = 25 puntos/sprint</span>
+                        </p>
+                    </div>
+                    <h3>¿Para qué sirve?</h3>
+                    <ul style="font-size: 1.2rem;">
+                        <li><strong>Forecasting:</strong> "Tenemos 150 puntos en backlog → 6 sprints"</li>
+                        <li><strong>Compromiso realista:</strong> Solo comprometer lo que históricamente completan</li>
+                        <li><strong>Mejora continua:</strong> Identificar si la velocidad mejora o empeora</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 19: Flujo de Refinamiento -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🔄 Flujo de Refinamiento Progresivo</h2>
+                <p style="font-size: 1.4rem; margin-bottom: 30px;">
+                    Una práctica experta combina T-Shirt Sizing y Story Points:
+                </p>
+                <div style="padding: 30px; background: rgba(255, 255, 255, 0.03); border: 2px solid rgba(102, 126, 234, 0.3); border-radius: 15px;">
+                    <div class="box" style="background: rgba(81, 207, 102, 0.1); border-color: rgba(81, 207, 102, 0.3); margin-bottom: 20px;">
+                        <h3 style="color: #51cf66;">1. Fase Roadmap (Trimestral)</h3>
+                        <p style="font-size: 1.2rem;">
+                            Estimar grandes <strong>Epics</strong> con <strong>T-Shirt Sizing</strong>
+                        </p>
+                        <p style="font-style: italic; color: #a0a0a0;">
+                            Ejemplo: "Migrar base de datos a Azure SQL" → Esto es un "Large"
+                        </p>
+                    </div>
+                    <div class="box" style="background: rgba(102, 126, 234, 0.1); margin-bottom: 20px;">
+                        <h3 style="color: #667eea;">2. Fase Sprint Planning (Quincenal)</h3>
+                        <p style="font-size: 1.2rem;">
+                            Desglosa r Epic "L" en <strong>User Stories</strong> más pequeñas
+                        </p>
+                        <p style="font-style: italic; color: #a0a0a0;">
+                            "Configurar servidor" (5), "Migrar esquema" (8), "Validar datos" (3)
+                        </p>
+                        <p style="font-size: 1.2rem; margin-top: 15px;">
+                            Estimar con <strong>Story Points</strong> y <strong>Planning Poker</strong>
+                        </p>
+                    </div>
+                </div>
+                <p style="margin-top: 30px; text-align: center; font-size: 1.3rem; color: #51cf66;">
+                    ✅ Esto es refinamiento progresivo: De lo general a lo específico
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 20: Tabla Comparativa -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📊 Cuadro Comparativo de Métodos</h2>
+                <table style="font-size: 1.1rem;">
+                    <thead>
+                        <tr>
+                            <th>Método</th>
+                            <th>Escala</th>
+                            <th>Uso Principal</th>
+                            <th>Ventaja Clave</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>PERT</strong></td>
+                            <td>3 puntos (O,M,P)</td>
+                            <td>Tareas individuales con incertidumbre</td>
+                            <td>Cuantifica incertidumbre (SD)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>CPM</strong></td>
+                            <td>Días fijos</td>
+                            <td>Identificar ruta crítica</td>
+                            <td>Determina duración total</td>
+                        </tr>
+                        <tr>
+                            <td><strong>T-Shirt</strong></td>
+                            <td>XS, S, M, L, XL</td>
+                            <td>Roadmaps, Epics</td>
+                            <td>Rápido, intuitivo</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Story Points</strong></td>
+                            <td>Fibonacci</td>
+                            <td>Sprints, Velocidad</td>
+                            <td>Precisión relativa</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Planning Poker</strong></td>
+                            <td>N/A (proceso)</td>
+                            <td>Consenso de equipo</td>
+                            <td>Expone suposiciones</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Slide 21: ¿Cuándo usar qué? -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>🤔 ¿Cuándo Usar Cada Método?</h2>
+                <div class="box" style="background: rgba(81, 207, 102, 0.1); border-color: rgba(81, 207, 102, 0.3); margin-bottom: 20px;">
+                    <h3 style="color: #51cf66;">PERT / CPM</h3>
+                    <ul style="font-size: 1.2rem;">
+                        <li><strong>Construcción, Ingeniería:</strong> Proyectos predecibles con tareas claras</li>
+                        <li><strong>Cuándo:</strong> Alcance bien definido, pocas restricciones de recursos</li>
+                        <li><strong>Ventaja:</strong> Cálculos precisos, ruta crítica clara</li>
+                    </ul>
+                </div>
+                <div class="box" style="background: rgba(102, 126, 234, 0.1); margin-bottom: 20px;">
+                    <h3 style="color: #667eea;">Agile (T-Shirt + Story Points + Poker)</h3>
+                    <ul style="font-size: 1.2rem;">
+                        <li><strong>Software, I+D, Innovación:</strong> Requisitos emergentes o cambiantes</li>
+                        <li><strong>Cuándo:</strong> Alta incertidumbre en el QUÉ construir, necesidad de feedback</li>
+                        <li><strong>Ventaja:</strong> Adaptabilidad, aprendizaje continuo, consenso de equipo</li>
+                    </ul>
+                </div>
+                <p style="margin-top: 30px; text-align: center; font-size: 1.4rem; color: #a0a0a0;">
+                    💡 Próxima clase: ¿Qué método gestiona mejor los <strong>RECURSOS</strong> y el <strong>RIESGO</strong>?
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 22: Gancho Clase 3 -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>❓ La Pregunta Crítica (Reprise)</h2>
+                <div style="padding: 60px; background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(255, 193, 7, 0.1)); border: 3px solid #ff6b6b; border-radius: 20px; text-align: center;">
+                    <p style="font-size: 1.8rem; line-height: 1.8; color: #ffffff;">
+                        Recordamos de la Clase 1:
+                    </p>
+                    <p style="font-size: 2.5rem; margin-top: 30px; color: #ffc107; font-weight: 700;">
+                        ¿DÓNDE ponemos la seguridad<br>
+                        para proteger REALMENTE al proyecto?
+                    </p>
+                </div>
+                <div style="margin-top: 40px; padding: 30px; background: rgba(102, 126, 234, 0.1); border: 2px solid #667eea; border-radius: 15px;">
+                    <p style="font-size: 1.5rem; text-align: center;">
+                        CPM la pone en <span class="highlight">HOLGURA distribuida</span> (vulnerable)<br><br>
+                        Agile la maneja con <span class="highlight">ITERACIÓN</span> (re-planificación)<br><br>
+                        <strong style="color: #667eea; font-size: 1.8rem;">
+                            CCPM tiene una respuesta diferente: BUFFERS AGREGADOS
+                        </strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 23: Resumen Clase 2 -->
+        <div class="slide">
+            <div class="slide-content">
+                <h2>📝 Resumen de la Clase 2</h2>
+                <h3 style="color: #667eea;">Métodos Aprendidos:</h3>
+                <ul style="font-size: 1.3rem;">
+                    <li><strong>PERT (3 puntos):</strong> Duración Esperada = (O+4M+P)/6, SD = (P-O)/6</li>
+                    <li><strong>CPM:</strong> Ruta crítica, holgura, pero ignora recursos y factores humanos</li>
+                    <li><strong>T-Shirt Sizing:</strong> XS a XXL para roadmaps y epics (rápido, intuitivo)</li>
+                    <li><strong>Story Points:</strong> Fibonacci (0,1,2,3,5,8,13,21) = Esfuerzo + Complejidad + Incertidumbre</li>
+                    <li><strong>Planning Poker:</strong> Consenso colaborativo, votación anónima, discusión de extremos</li>
+                    <li><strong>Velocidad:</strong> Puntos/sprint para forecasting</li>
+                    <li><strong>Flujo de Refinamiento:</strong> T-Shirt (trimestre) → Story Points (sprint)</li>
+                </ul>
+                <div style="margin-top: 40px; padding: 25px; background: rgba(118, 75, 162, 0.1); border: 2px solid #764ba2; border-radius: 15px; text-align: center;">
+                    <p style="font-size: 1.4rem; color: #764ba2;">
+                        🎯 Próxima Clase: Cadena Crítica (CCPM) - La solución de Goldratt
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 24: Fin -->
+        <div class="slide">
+            <div class="slide-content" style="text-align: center;">
+                <h1>¡Fin de la Clase 2!</h1>
+                <p style="font-size: 1.8rem; margin: 40px 0; color: #a0a0a0;">
+                    Gracias por su participación activa en Planning Poker
+                </p>
+                <p class="emoji">🎓</p>
+                <p style="font-size: 1.4rem; margin-top: 40px;">
+                    <strong style="color: #667eea;">Alejandro Sfrede</strong><br>
+                    Área de Arquitectura
+                </p>
+                <div style="margin-top: 60px;">
+                    <a href="clase1.html" class="btn" style="display: inline-block; text-decoration: none; margin-right: 10px;">
+                        ← Clase 1
+                    </a>
+                    <a href="index.html" class="btn" style="display: inline-block; text-decoration: none; margin: 0 10px;">
+                        🏠 Portal
+                    </a>
+                    <a href="clase3.html" class="btn" style="display: inline-block; text-decoration: none; margin-left: 10px; background: rgba(102, 126, 234, 0.2); border-color: #667eea;">
+                        Clase 3 →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+            
+
+            <div class="controls">
+                <button class="btn" id="prevBtn" onclick="changeSlide(-1)">← Anterior</button>
+                <button class="btn" id="nextBtn" onclick="changeSlide(1)">Siguiente →</button>
+            </div>
+        </div>
+
+        <!-- Right Side: Speech Sidebar (30%) -->
+        <div class="sidebar" id="speechSidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title" id="speechTitle">Portada</div>
+                <div class="sidebar-duration" id="speechDuration">2 min</div>
+            </div>
+
+            <div class="sidebar-body">
+                <div class="speech-content" id="speechContent">
+                    <!-- Speech content will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <span class="tts-label">🔊 Text-to-Speech</span>
+
+                <!-- Voice Selector Dropdown -->
+                <select class="voice-selector" id="voiceSelector" onchange="onVoiceChange()">
+                    <optgroup label="🔊 Navegador (Gratis)">
+                        <option value="browser:es-ES-female">Español España - Mujer</option>
+                        <option value="browser:es-ES-male">Español España - Hombre</option>
+                        <option value="browser:es-MX-female">Español México - Mujer</option>
+                        <option value="browser:es-MX-male">Español México - Hombre</option>
+                        <option value="browser:es-AR-female">Español Argentina - Mujer</option>
+                    </optgroup>
+                    <optgroup label="🎙️ OpenAI Pro (Calidad)">
+                        <option value="openai:nova">Nova - Mujer clara</option>
+                        <option value="openai:shimmer">Shimmer - Mujer amigable</option>
+                        <option value="openai:alloy">Alloy - Neutral moderna</option>
+                        <option value="openai:echo">Echo - Hombre cálido</option>
+                        <option value="openai:fable">Fable - Hombre claro</option>
+                        <option value="openai:onyx">Onyx - Hombre grave</option>
+                    </optgroup>
+                </select>
+
+                <div class="tts-controls">
+                    <button class="tts-btn" id="ttsPlay" onclick="toggleTTS()">▶</button>
+                    <button class="tts-btn" id="ttsStop" onclick="stopTTS()" disabled>⏹</button>
+                </div>
+                <div class="speed-controls">
+                    <button class="speed-btn" onclick="setSpeed(0.8)">0.8x</button>
+                    <button class="speed-btn" onclick="setSpeed(1.0)">1.0x</button>
+                    <button class="speed-btn active" onclick="setSpeed(1.2)">1.2x</button>
+                    <button class="speed-btn" onclick="setSpeed(1.5)">1.5x</button>
+                </div>
+                <div id="ttsStatus" style="font-size: 0.75rem; color: #888; margin-top: 5px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Speech Data for All 21 Slides - Extracted from SPEECH_SCRIPTS_COMPLETO.md
+        const speechDataClase2 = {
+            "slide1": {
+                        "title": "Portada",
+                        "duration": "2 min",
+                        "script": "Bienvenidos de vuelta a la Clase 2: **Métodos de Estimación**.\n\n[PAUSA - sonreír]\n\nEn Clase 1 vimos EL PROBLEMA. El diagnóstico. Por qué las estimaciones tradicionales fallan sistemáticamente.\n\nHoy vemos LAS HERRAMIENTAS.\n\n[ÉNFASIS]\n\nVamos a ver 3 enfoques diferentes:\n\n1. **PERT / CPM**: Los clásicos. Años 50-60. Militar, NASA, construcción.\n2. **Ágil**: Story Points, Planning Poker. Años 2000. Software, equipos auto-organizados.\n3. **CCPM**: Preview para Clase 3. El cambio de paradigma.\n\n[PAUSA]\n\n¿El objetivo de hoy?\n\nQue al final de esta clase puedan elegir la herramienta **APROPIADA** para su contexto.\n\nNo hay 'mejor método'. Hay 'método apropiado para este proyecto'.\n\n[TRANSICIÓN]\n\nEmpecemos con los clásicos. Vamos a 1958...\""
+            },
+            "slide2": {
+                        "title": "Agenda",
+                        "duration": "3 min",
+                        "script": "OK, el plan de hoy.\n\n[LEER agenda relajadamente]\n\n**Primera mitad (50 min):**\n\n**PERT**: Program Evaluation and Review Technique.\nCómo estimar con 3 puntos (Optimista, Más Probable, Pesimista).\nLa matemática detrás. Por qué funciona... y por qué NO basta.\n\n**CPM**: Critical Path Method.\nCómo identificar la Ruta Crítica.\nPor qué optimizar la ruta crítica acorta el proyecto.\nY... spoiler... por qué CPM ignora algo crítico: los **recursos**.\n\n**Break de 15 minutos.**\n\n**Segunda mitad (95 min):**\n\n**Estimación Ágil**:\n- Story Points: complejidad relativa, no horas absolutas.\n- Escala Fibonacci: 1, 2, 3, 5, 8, 13...\n- T-Shirt Sizing: XS, S, M, L, XL.\n\n**Planning Poker**:\nAquí viene lo jugoso. Vamos a narrar un caso COMPLETO paso a paso.\nVan a ver cómo el proceso expone suposiciones ocultas y genera alineación.\n\n**Velocidad y Forecasting**:\nCómo medir la capacidad del equipo empíricamente.\nCómo responder '¿cuándo estará listo?' sin mentir.\n\n**Cierre (20 min):**\n\nTabla comparativa: ¿Cuándo usar PERT? ¿Cuándo Ágil? ¿Cuándo CCPM?\n\n[ÉNFASIS]\n\nEsta clase tiene MUCHO contenido. Les pido paciencia. Al final va a cerrar.\n\n¿Listos? Vamos a 1958, plena Guerra Fría...\""
+            },
+            "slide3": {
+                        "title": "Introducción a PERT",
+                        "duration": "8 min",
+                        "script": "PERT. **Program Evaluation and Review Technique**.\n\n[CONTEXTO histórico - tono narrativo]\n\n1958, plena Guerra Fría. La Marina de EEUU necesita desarrollar misiles balísticos Polaris para submarinos nucleares.\n\nProblema: el proyecto tiene **3,300 contratistas**, 250 tareas principales, dependencias complejas.\n\nPregunta: ¿Cuánto va a tardar?\n\n[PAUSA]\n\nMétodo tradicional (Gantt, single estimate): 'Tarea X toma 30 días'.\n\nPero... ¿y si hay retrasos? ¿y si hay imprevistos? En un proyecto con 3,300 partes móviles, las probabilidades de que TODO salga según plan son... cero.\n\n[ÉNFASIS]\n\nNecesitaban un método que **capturara la incertidumbre** explícitamente.\n\nAhí nace PERT.\n\n[EXPLICAR concepto]\n\nLa idea central de PERT:\n\n**NO estimar con un número. Estimar con TRES números.**\n\n[LEER los 3 puntos]\n\n1. **Optimista:** ¿Qué pasa si TODO sale perfecto?\n2. **Más Probable:** ¿Qué esperamos realistamente?\n3. **Pesimista:** ¿Qué pasa si Murphy ataca?\n\n[PAUSA]\n\nY luego usan matemática para calcular una estimación ponderada.\n\n**Resultado:** Proyecto Polaris se completó **2 años ANTES** de lo originalmente estimado.\n\nPERT se acreditó como factor crítico del éxito.\n\n[CONEXIÓN con Clase 1]\n\n¿Recuerdan el Cono de Incertidumbre?\n\nEn fase de Concepto: ±400%.\n\nPERT es una forma de **CAPTURAR** esa variabilidad explícitamente.\n\nNo das un número falso. Das un **RANGO** que refleja la incertidumbre real.\n\n[ANALOGÍA]\n\nPregunta: '¿Cuánto tarda llegar del aeropuerto a tu casa?'\n\nRespuesta puntual: '30 minutos.'\n\nRespuesta PERT:\n- Optimista (3am, cero tráfico): 20 min\n- Más probable: 30 min\n- Pesimista (hora pico, accidente): 60 min\n\n¿Cuál es más honesta? La respuesta PERT.\n\n[TRANSICIÓN]\n\nVeamos la matemática...\""
+            },
+            "slide4": {
+                        "title": "Fórmula PERT",
+                        "duration": "10 min",
+                        "script": "OK, la fórmula.\n\n[LEER fórmula en pantalla]\n\n**μ = (O + 4M + P) / 6**\n\nDonde:\n- O = Optimista\n- M = Más Probable (Most Likely)\n- P = Pesimista\n\n[PAUSA - dejar que miren]\n\nPregunta obvia: ¿Por qué multiplicar M por 4?\n\n¿Por qué dividir entre 6?\n\n¿De dónde sale esto?\n\n[EXPLICAR]\n\nEsto viene de la **distribución Beta**.\n\nEn estadística, cuando tenés incertidumbre asimétrica (no es una campana perfecta), la distribución Beta modela bien el comportamiento.\n\nLa fórmula **μ = (O + 4M + P) / 6** es una aproximación de la **media** de esa distribución.\n\n[PAUSA]\n\nTraducción: el número 'M' (Más Probable) tiene 4 veces más peso que los extremos.\n\nTiene sentido: los extremos (best case / worst case) son menos probables. El centro es donde caemos usualmente.\n\n[EJEMPLO numérico]\n\nTarea: Implementar módulo de autenticación.\n\n**Estimaciones del equipo:**\n- Optimista (O): 3 días (todo va perfecto, API lista, sin bugs)\n- Más Probable (M): 7 días (normal, algún bug, testing)\n- Pesimista (P): 15 días (API incompleta, bugs severos, refactor)\n\n[CALCULAR]\n\n**μ = (3 + 4×7 + 15) / 6**\n**μ = (3 + 28 + 15) / 6**\n**μ = 46 / 6**\n**μ ≈ 7.7 días**\n\n[INTERPRETAR]\n\nLa estimación PERT dice: **8 días** (redondeado).\n\nPero ojo: NO es una promesa. Es la **esperanza matemática**.\n\n[PAUSA]\n\nPregunta: '¿Hay 50% de probabilidad de terminar en 8 días?'\n\nRespuesta: **NO**.\n\nLa distribución Beta es asimétrica. Típicamente hay ~35-40% de chance de terminar en la esperanza.\n\nMás chance de pasarse que de terminarse antes.\n\n[VER GRÁFICO en slide - curva Beta]\n\nLa distribución se 've así: pico en 7, pero cola larga hacia la derecha (15 días).\n\n[ÉNFASIS]\n\nPor eso PERT también calcula **varianza**:\n\n**σ² = [(P - O) / 6]²**\n\nVarianza mide 'qué tan dispersa' está la estimación.\n\nEn nuestro caso:\n- σ² = [(15 - 3) / 6]² = [12/6]² = 2² = 4\n- σ = 2 días (desviación estándar)\n\n[INTERPRETAR varianza]\n\nEstimación: **8 días ± 2 días**\n\nRango razonable: 6-10 días.\n\n[PAUSA]\n\nEsto es MUCHO más honesto que decir 'toma 8 días' sin contexto.\n\n[TRANSICIÓN]\n\nAhora, ¿cómo usamos esto en un proyecto con MUCHAS tareas?\""
+            },
+            "slide5": {
+                        "title": "PERT en Proyectos Complejos",
+                        "duration": "8 min",
+                        "script": "Un proyecto real no es UNA tarea. Son 50, 100, 200 tareas.\n\n¿Cómo aplicamos PERT ahí?\n\n[EXPLICAR proceso]\n\n**Paso 1:** Cada tarea se estima con 3 puntos (O-M-P).\n\n**Paso 2:** Calcular μ y σ² para cada tarea.\n\n**Paso 3:** Sumar esperanzas (μ) para obtener duración total del proyecto.\n\n**Paso 4:** Sumar varianzas (σ²) para obtener incertidumbre total.\n\n[PAUSA - ÉNFASIS en Paso 4]\n\nEsto es crítico: **las varianzas se SUMAN**.\n\nNo se promedian. Se SUMAN.\n\n¿Por qué importa?\n\n[EJEMPLO]\n\nProyecto con 10 tareas:\n- Cada tarea: μ = 5 días, σ = 1 día\n- Duración total: 10 × 5 = **50 días**\n- Varianza total: 10 × 1² = 10\n- Desviación estándar total: √10 ≈ **3.2 días**\n\n[PAUSA]\n\nRango del proyecto: **50 ± 3.2 días** → 47-53 días (razonable).\n\n[AHORA el problema]\n\nProyecto con 100 tareas:\n- Cada tarea: μ = 5 días, σ = 1 día\n- Duración total: 100 × 5 = **500 días**\n- Varianza total: 100 × 1² = 100\n- Desviación estándar total: √100 = **10 días**\n\nRango: **500 ± 10 días** → 490-510 días.\n\n[PAUSA - tono reflexivo]\n\nEsperen... 100 tareas, cada una con ±1 día de incertidumbre...\n\n...y el proyecto TOTAL solo tiene ±10 días de incertidumbre?\n\nEso suena... optimista.\n\n[PROBLEMA DE PERT]\n\nEn la práctica, las tareas NO son independientes.\n\nSi una tarea se retrasa, a menudo arrastra a otras:\n- Dependencias técnicas\n- Recursos compartidos\n- Conocimiento oculto que se descubre tarde\n\n**PERT asume independencia. Eso es falso en proyectos reales.**\n\n[CONEXIÓN con Clase 1]\n\n¿Recuerdan los estudios de Microsoft y MIT?\n\nLos proyectos con padding distribuido (cada tarea con 'colchón') terminaban PEOR.\n\nParkinson y Student Syndrome comían el padding.\n\n[ÉNFASIS]\n\nPERT mejora la **estimación individual**, pero NO previene la **dinámica psicológica**.\n\n[TRANSICIÓN]\n\nY ahí entra CPM...\""
+            },
+            "slide6": {
+                        "title": "CPM - Critical Path Method",
+                        "duration": "12 min",
+                        "script": "CPM: **Critical Path Method**.\n\nHermano de PERT. Desarrollado casi al mismo tiempo (1957) por DuPont.\n\n[PREGUNTA retórica]\n\nSi tengo 100 tareas en mi proyecto, ¿todas son igual de importantes?\n\n[Esperar respuestas mentales]\n\nRespuesta: **NO**.\n\nAlgunas tareas están en la **Ruta Crítica**.\n\n[DEFINICIÓN]\n\n**Ruta Crítica:** Secuencia de tareas que determina la duración MÍNIMA del proyecto.\n\nSi una tarea en la ruta crítica se retrasa 1 día → el proyecto se retrasa 1 día.\n\nSi una tarea FUERA de la ruta crítica se retrasa 1 día → puede no afectar (tiene 'holgura').\n\n[ANALOGÍA]\n\nImaginen que van a preparar una cena de 3 platos:\n\n**Tareas:**\n1. Cocinar arroz: 20 min\n2. Hacer ensalada: 10 min\n3. Cocinar carne: 30 min\n4. Hacer postre: 15 min\n\n¿Cuánto tarda la cena completa?\n\n[PAUSA]\n\nSi hacen TODO secuencial: 20 + 10 + 30 + 15 = **75 minutos**.\n\nPero pueden **paralelizar**:\n- Mientras se cocina el arroz (20 min), hacen la ensalada (10 min)\n- Mientras se cocina la carne (30 min), hacen el postre (15 min)\n\nTimeline real:\n- Minuto 0-20: Arroz (+ Ensalada en paralelo)\n- Minuto 20-50: Carne (+ Postre en paralelo)\n\n**Total: 50 minutos** (no 75).\n\n[IDENTIFICAR ruta crítica]\n\n**Ruta Crítica:** Arroz (20) → Carne (30) = **50 min**\n\nEnsalada y Postre tienen **holgura** (pueden retrasarse sin afectar).\n\n[PAUSA]\n\n**Implicación:** Si querés acortar la cena, optimizá la carne o el arroz.\n\nNO pierdas tiempo optimizando la ensalada (no está en ruta crítica).\n\n[APLICAR a software]\n\nProyecto de desarrollo:\n\n**Tareas:**\n- A: Diseño de DB (5 días)\n- B: Backend API (10 días) - depende de A\n- C: Frontend (8 días) - depende de B\n- D: Testing (3 días) - depende de C\n- E: Documentación (4 días) - puede empezar después de A\n\n[DIBUJAR mentalmente]\n\nA (5) → B (10) → C (8) → D (3) = **26 días** (Ruta Crítica)\n\nE (4) puede empezar después de A, termina en día 9.\n\n**Duración proyecto: 26 días** (no 30 si hicieras todo secuencial).\n\n[ÉNFASIS]\n\nCPM dice: **Optimizá B y C** (están en ruta crítica).\n\nSi B baja de 10 a 8 días → proyecto baja a 24 días.\n\nSi E baja de 4 a 2 días → proyecto sigue en 26 días (E no está en ruta crítica).\n\n[PAUSA - El problema de CPM]\n\nCPM asume que podés **paralelizar** A, B, C, D, E sin problema.\n\nPero... ¿qué pasa si:\n- B y E necesitan al MISMO desarrollador?\n- C y D necesitan el MISMO entorno de testing?\n\nAhí CPM **falla**. Porque ignora **recursos**.\n\n[PREVIEW Clase 3]\n\nEn Clase 3 veremos **Critical CHAIN** (no Critical Path).\n\nLa diferencia: Critical Chain incluye **recursos**.\n\nEso cambia todo.\n\n[TRANSICIÓN]\n\nAntes del break, veamos cómo PERT y CPM se combinan...\""
+            },
+            "slide7": {
+                        "title": "Combinando PERT y CPM",
+                        "duration": "10 min",
+                        "script": "En la práctica, PERT y CPM se usan juntos.\n\n[PROCESO combinado]\n\n**Paso 1:** Identificar todas las tareas y dependencias (grafo de red).\n\n**Paso 2:** Estimar cada tarea con PERT (O-M-P → μ y σ²).\n\n**Paso 3:** Calcular Ruta Crítica (CPM).\n\n**Paso 4:** Sumar μ de tareas en ruta crítica → Duración esperada del proyecto.\n\n**Paso 5:** Sumar σ² de tareas en ruta crítica → Varianza del proyecto.\n\n[EJEMPLO completo]\n\nProyecto con 6 tareas:\n\n| Tarea | Predecesoras | O | M | P | μ | σ² |\n|-------|--------------|---|---|---|---|----|\n| A | - | 2 | 3 | 5 | 3.2 | 0.25 |\n| B | A | 4 | 6 | 10 | 6.3 | 1.0 |\n| C | A | 3 | 4 | 6 | 4.2 | 0.25 |\n| D | B | 5 | 7 | 11 | 7.3 | 1.0 |\n| E | C | 2 | 3 | 5 | 3.2 | 0.25 |\n| F | D, E | 3 | 4 | 6 | 4.2 | 0.25 |\n\n[IDENTIFICAR rutas]\n\n**Ruta 1:** A → B → D → F = 3.2 + 6.3 + 7.3 + 4.2 = **21 días**\n**Ruta 2:** A → C → E → F = 3.2 + 4.2 + 3.2 + 4.2 = **14.8 días**\n\n**Ruta Crítica:** Ruta 1 (21 días).\n\n[CALCULAR incertidumbre]\n\nVarianza de Ruta Crítica: 0.25 + 1.0 + 1.0 + 0.25 = **2.5**\nDesviación estándar: √2.5 ≈ **1.6 días**\n\n**Resultado:**\n\nDuración esperada: **21 ± 1.6 días** (68% de confianza)\nRango amplio (95% confianza): **21 ± 3.2 días** → 18-24 días\n\n[INTERPRETAR para stakeholder]\n\n\"El proyecto tomará aproximadamente **21 días**.\n\nHay 68% de probabilidad de que esté entre 19-23 días.\n\nHay 95% de probabilidad de que esté entre 18-24 días.\n\nSi necesitamos compromiso firme, recomendamos planificar para **24 días** (incluye 2σ de buffer).\"\n\n[PAUSA - ÉNFASIS]\n\nEsto es **honestidad** vs falsa precisión.\n\nMejor decir '21 ± 3 días' que '21 días exactos'.\n\n[BENEFICIOS de PERT/CPM]\n\n✅ Captura incertidumbre explícitamente (PERT 3 puntos)\n✅ Identifica dónde concentrar esfuerzo (CPM ruta crítica)\n✅ Cuantifica riesgo (varianza agregada)\n✅ Funciona bien para proyectos con fases claras\n\n[LIMITACIONES]\n\n❌ Asume independencia de tareas (raramente cierto)\n❌ Ignora recursos (CPM asume paralelismo infinito)\n❌ NO previene Parkinson / Student Syndrome\n❌ Estimaciones iniciales siguen siendo basadas en 'adivinar'\n\n[TRANSICIÓN]\n\nOK, eso es PERT/CPM. Los clásicos.\n\nBreak de 15 minutos.\n\nCuando volvamos: **Métodos Ágiles**.\""
+            },
+            "slide8": {
+                        "title": "Introducción a Estimación Ágil",
+                        "duration": "8 min",
+                        "script": "Bienvenidos de vuelta.\n\n[PAUSA]\n\nPrimera mitad: PERT y CPM. Métodos de los años 50-60. Militares, NASA, construcción.\n\nSegunda mitad: **Estimación Ágil**. Años 2000. Software, equipos auto-organizados.\n\n[ÉNFASIS]\n\nEl cambio de paradigma:\n\n**PERT/CPM dicen:** 'Estimá en horas o días (tiempo absoluto).'\n\n**Ágil dice:** 'Estimá en Story Points (complejidad relativa).'\n\n[PAUSA - pregunta retórica]\n\n¿Por qué?\n\n[EXPLICAR]\n\n**Problema de estimar en horas:**\n\nPregunta: '¿Cuántas horas toma implementar login básico?'\n\nRespuestas:\n- Dev Junior: 16 horas (nunca lo hizo)\n- Dev Senior: 4 horas (lo hizo 20 veces)\n- Dev que no sabe React: 12 horas (conoce backend, no frontend)\n\n¿Quién tiene razón?\n\n[PAUSA]\n\n**Todos tienen razón**. Para su nivel de experiencia.\n\nEstimar en horas **mezcla** dos cosas:\n1. Complejidad de la tarea\n2. Velocidad del ejecutor\n\n[ANALOGÍA]\n\nPregunta: '¿Cuánto tardás en correr 5 km?'\n\n- Atleta: 18 minutos\n- Persona promedio: 35 minutos\n- Sedentario: 50 minutos\n\nLa **distancia** (5 km) es fija.\nEl **tiempo** depende de quién corre.\n\n[APLICAR a software]\n\n**Story Points separan complejidad de velocidad:**\n\n- **Complejidad (Story Points):** 'Login básico es 3 puntos' (relativo a baseline)\n- **Velocidad (Velocity):** 'Este equipo hace 25 puntos por sprint' (empírico)\n\n[BENEFICIOS]\n\n✅ **Estabilidad:** Complejidad de 'login' no cambia si cambia el equipo.\n✅ **No culpa:** No decimos 'tardaste 8 horas cuando estimaste 4'. Decimos 'el equipo hizo 20 puntos este sprint, históricamente hace 25'.\n✅ **Colaboración:** Equipo estima junto (no PM solo).\n✅ **Honestidad:** Reconoce que NO sabemos exacto.\n\n[PREGUNTA obvia]\n\n'OK, pero al final el stakeholder quiere **FECHA**. ¿Cómo convertís Story Points a calendario?'\n\n[RESPUESTA]\n\nCon **Velocidad**.\n\nDespués de 3-5 sprints, medís cuántos puntos el equipo completa por sprint.\n\nEso te da forecast empírico.\n\n[EJEMPLO]\n\n- Backlog: 120 Story Points\n- Velocidad del equipo: 25 puntos/sprint\n- Forecast: 120/25 ≈ 5 sprints\n- Si sprints son 2 semanas → **10 semanas**\n\n[ÉNFASIS]\n\nBasado en **datos reales**, no adivinanzas.\n\n[TRANSICIÓN]\n\nVeamos los Story Points en detalle...\""
+            },
+            "slide9": {
+                        "title": "Story Points y Escala Fibonacci",
+                        "duration": "12 min",
+                        "script": "Story Points. Unidad de **complejidad relativa**.\n\n[EXPLICAR concepto]\n\nNo son horas. No son días. Son **puntos comparativos**.\n\n[ANALOGÍA]\n\nImaginen que tienen que estimar cuánto tarda hacer 3 comidas:\n\n- Comida A: Huevos revueltos\n- Comida B: Pasta con salsa\n- Comida C: Paella valenciana completa\n\n[PREGUNTA]\n\n'¿Cuántos minutos tarda cada una?'\n\nDifícil. Depende de quién cocina.\n\n[MEJOR PREGUNTA]\n\n'Si Huevos Revueltos es 1 punto (baseline), ¿cuántos puntos son Pasta y Paella?'\n\nRespuestas intuitivas:\n- Huevos: **1**\n- Pasta: **3** (3 veces más compleja)\n- Paella: **13** (mucho más compleja, muchos ingredientes, timing crítico)\n\n[PAUSA]\n\nEso es Story Points. **Relativo**, no absoluto.\n\n[ESCALA FIBONACCI]\n\nEn Ágil se usa la secuencia de Fibonacci:\n\n**0, 1, 2, 3, 5, 8, 13, 21, 34, ...**\n\n¿Por qué esta secuencia tan rara?\n\n[EXPLICAR]\n\n**Razón 1: Incertidumbre crece no-linealmente.**\n\nDiferencia entre 3 y 4 horas: precisa, medible.\nDiferencia entre 13 y 14 días: irrelevante, ambos son 'largo y riesgoso'.\n\nFibonacci **agrupa** estimaciones en buckets: 1, 2, 3, 5, 8, 13.\n\nNo hay 4. No hay 6. No hay 7.\n\nEso **previene falsa precisión**.\n\n**Razón 2: Fibonacci fuerza discusión.**\n\nSi alguien dice 'esta tarea es 4' y no existe 4, tiene que elegir: ¿3 o 5?\n\nEso genera debate → suposiciones salen a la luz.\n\n**Razón 3: Refleja Cono de Incertidumbre.**\n\n- Tarea 1-2 pts: muy bien entendida (±25%)\n- Tarea 8-13 pts: poca claridad (±100%+)\n- Tarea 21+ pts: épica, hay que dividir\n\n[ESCALA completa]\n\n**0:** Trivial (cambiar un texto, arreglar typo)\n**1:** Muy simple (agregar campo a form, test unitario)\n**2:** Simple (endpoint CRUD básico)\n**3:** Baseline (feature simple end-to-end) ← ELEGIR ESTO COMO REFERENCIA\n**5:** Moderadamente complejo (feature con lógica de negocio)\n**8:** Complejo (integración con sistema externo, refactor)\n**13:** Muy complejo (módulo completo, alta incertidumbre)\n**21:** Épica (dividir en historias más chicas)\n**?:** No sé (necesito investigar primero)\n**∞:** Demasiado grande (imposible estimar, dividir)\n\n[ÉNFASIS - Baseline]\n\n**Clave: el equipo debe elegir una historia 'estándar' de 3 puntos.**\n\nTodas las demás estimaciones son **relativas a esa baseline**.\n\nEjemplo:\n- Baseline: 'CRUD completo con validaciones' = 3 pts\n- Historia nueva: '¿Es más simple, igual, o más complejo que el CRUD?'\n\n[PAUSA]\n\nSi todos usan la MISMA baseline, las estimaciones se alinean.\n\n[EVITAR]\n\n❌ NO convertir puntos a horas ('1 pt = 2 horas')\n❌ NO comparar velocidades entre equipos ('Equipo A hace 40 pts, B hace 25')\n❌ NO cambiar baseline mid-proyecto (genera inconsistencia)\n\n[TRANSICIÓN]\n\nAhora, ¿cómo el equipo decide cuántos puntos asignar?\n\nAhí entra **Planning Poker**.\""
+            },
+            "slide10": {
+                        "title": "T-Shirt Sizing",
+                        "duration": "10 min",
+                        "script": "Antes de Planning Poker, una variante más simple: **T-Shirt Sizing**.\n\n[CONCEPTO]\n\nEn vez de números (1, 2, 3, 5...), usás tallas de remera:\n\n**XS, S, M, L, XL, XXL**\n\n[POR QUÉ]\n\nT-Shirt Sizing es más **intuitivo** para equipos nuevos o stakeholders no-técnicos.\n\n'Esta feature es L (grande)' es más fácil de entender que 'esta feature es 13 puntos'.\n\n[CUÁNDO USAR]\n\n**Situación 1: Estimación burda de backlog grande**\n\nTenés 100 historias en backlog.\n\nNO necesitás precisión. Necesitás orden de magnitud.\n\nProceso:\n- Stakeholders o PM asignan: XS, S, M, L, XL\n- Historias L y XL se dividen después\n- Historias XS, S, M se refinan cuando estén cerca\n\n**Situación 2: Introducir Ágil a organización tradicional**\n\nCliente acostumbrado a horas/días.\n\nStory Points suenan abstractos.\n\nT-Shirt es puente:\n- 'Esta feature es M (mediana), como el módulo de reportes que hicimos'\n- Cliente entiende comparación, aunque no entienda 'puntos'\n\n**Situación 3: Discovery / Inception**\n\nPrimeras sesiones con cliente.\n\nNO sabemos suficiente para estimar con Fibonacci.\n\nT-Shirt permite clasificar sin falsa precisión.\n\n[MAPEO aproximado]\n\n| T-Shirt | Fibonacci | Descripción |\n|---------|-----------|-------------|\n| XS | 1 | Trivial |\n| S | 2-3 | Simple |\n| M | 5 | Moderada |\n| L | 8-13 | Grande |\n| XL | 21+ | Épica |\n| XXL | ∞ | Demasiado grande, dividir |\n\n[PROCESO]\n\n**Paso 1:** Elegir historia 'M' como baseline (igual que Fibonacci 3).\n\n**Paso 2:** Para cada historia, comparar: '¿Es más chica (S), igual (M), o más grande (L) que baseline?'\n\n**Paso 3:** Historias L y XL se marcan para dividir.\n\n[EJEMPLO práctico]\n\nBacklog de e-commerce:\n\n| Historia | T-Shirt | Razón |\n|----------|---------|-------|\n| Agregar botón 'favoritos' | XS | Cambio UI simple |\n| Registro de usuario | S | Form + validaciones + email |\n| Checkout | L | Muchos pasos, integraciones |\n| Recomendaciones con ML | XXL | Épica, dividir |\n| Dashboard admin | L | Muchas pantallas |\n\n[LUEGO refinar]\n\nLas top 15 historias (las que entrarán pronto en sprint) se re-estiman con Fibonacci.\n\nProceso:\n- S → 2 o 3 pts\n- M → 5 pts\n- L → 8 o 13 pts (o dividir en 2 M)\n\n[EJEMPLO de refinamiento]\n\n**Historia:** 'Checkout' (L)\n\n**Al refinar:**\n- Paso 1: Ingresar dirección → 3 pts\n- Paso 2: Elegir método de pago → 5 pts\n- Paso 3: Revisar orden → 2 pts\n- Paso 4: Confirmar y email → 3 pts\n\nTotal: 13 pts (coincide con L).\n\nO dividís en 2 historias: Pasos 1-2 (8 pts) y Pasos 3-4 (5 pts).\n\n[VENTAJAS de T-Shirt]\n\n✅ Rápido (sprint de 50 historias en 30 min)\n✅ Intuitivo (todos entienden tallas)\n✅ Previene parálisis por análisis\n\n[DESVENTAJAS]\n\n❌ Menos preciso que Fibonacci\n❌ NO sirve para Sprint Planning (necesitás números para calcular capacidad)\n❌ Puede ser ambiguo ('¿Esto es M grande o L chico?')\n\n[COMBINACIÓN típica]\n\n**Paso 1:** Toda el backlog con T-Shirt Sizing (burdo, rápido)\n\n**Paso 2:** Historias top 15 con Planning Poker (Fibonacci, preciso)\n\n**Paso 3:** En Sprint Planning, las top 15 historias se estiman con Fibonacci\n\n**Resultado:**\n- Backlog organizado por tamaño\n- Top historias con puntos precisos\n- Historias lejanas con estimación burda (está OK, se refinarán después)\n\n[CONECTAR con Refinamiento Progresivo]\n\nEsto conecta con un concepto que veremos después: **Refinamiento Progresivo**.\n\nNO necesitas estimar TODO el backlog con precisión.\nSolo lo que vas a trabajar PRONTO.\n\nEl resto puede ser T-Shirt o incluso 'Epic - grande' sin más detalle.\n\n[TRANSICIÓN]\n\nOK, ahora que sabemos la TEORÍA (puntos, Fibonacci, T-Shirt)...\n\n¿Cómo el EQUIPO decide cuántos puntos asignar?\n\nAhí entra **Planning Poker**.\""
+            },
+            "slide11": {
+                        "title": "Break - Preguntas y Transición",
+                        "duration": "2 min",
+                        "script": "Tomemos un break de 15 minutos.\n\n[PAUSA]\n\nSi tienen preguntas sobre PERT, CPM, Story Points, o T-Shirt Sizing, ahora es el momento.\n\n[PAUSA - responder preguntas si hay]\n\nCuando volvamos, vamos a hacer algo práctico:\n\n**Taller de Planning Poker**.\n\nVan a ver cómo un equipo REAL estima una historia.\n\nVan a ver la DISCUSIÓN que genera consenso.\n\nVan a ver cómo suposiciones ocultas salen a la luz.\n\n[ÉNFASIS]\n\nEste es el **corazón pedagógico** de Clase 2.\n\nNos vemos en 15 minutos.\""
+            },
+            "slide12": {
+                        "title": "Caso de Estudio - Backlog de Autenticación",
+                        "duration": "10 min",
+                        "script": "Aquí está nuestro caso: **Sistema de Autenticación**.\n\n[LEER TABLA en pantalla]\n\nTenemos 5 Historias de Usuario (HU):\n\n**HU-1: Login básico** - Ya estimado: **2 puntos**\n**HU-2: Registro de usuarios** - Ya estimado: **3 puntos** ← BASELINE\n**HU-3: Password reset** - **SIN ESTIMAR ← Este lo haremos**\n**HU-4: OAuth Google** - Sin estimar\n**HU-5: Two-Factor Auth (2FA)** - Sin estimar\n\n[CONTEXTO]\n\nEl equipo ya completó HU-1 y HU-2 en sprint anterior.\n\nAhora en Sprint Planning están estimando las siguientes.\n\n**HU-2 es el BASELINE:**\n\n'Registro de usuarios' (form con nombre, email, password, confirmar password, validaciones, endpoint POST /register, hash de password, email confirmación) = **3 puntos**.\n\n[ÉNFASIS]\n\nTodos los miembros del equipo conocen HU-2 a fondo.\nLo completaron hace 5 días.\nTomó ~8 horas reales de trabajo (pero NO decimos 3pts = 8hs).\n\nEs el **punto de comparación** para el resto.\n\n[PAUSA]\n\nAhora van a estimar **HU-3: Password Reset**.\n\n[LEER HU-3 completa]\n\n**Como** usuario registrado que olvidó su contraseña,\n**Quiero** poder resetearla mediante email,\n**Para** recuperar acceso a mi cuenta.\n\n**Criterios de Aceptación:**\n\n1. Link 'Olvidé mi contraseña' en página de login\n2. Form para ingresar email\n3. Sistema envía email con token único temporal\n4. Token expira en 1 hora\n5. Email contiene link a página de reset\n6. Usuario ingresa nueva contraseña (2 veces)\n7. Password se actualiza y token se invalida\n8. Usuario puede loguearse con nueva password\n\n[PAUSA - Dejar que procesen]\n\nAntes de ver la estimación del equipo...\n\n**Pregunta para ustedes:**\n\n**¿Cuántos puntos asignarían?**\n\n[DAR 30 SEGUNDOS - pedir que escriban en chat o piensen]\n\nOpciones: 1, 2, 3, 5, 8, 13...\n\nRecuerden: HU-2 (Registro) = 3 puntos.\n\n¿Password Reset es más simple, igual, o más complejo que Registro?\n\n[RECOGER RESPUESTAS en chat si es posible]\n\n[Leer algunas respuestas en voz alta]\n\n'Juan dice 5'\n'María dice 3'\n'Pedro dice 8'\n\n[RISA]\n\nPerfecto. Exactamente lo que pasó en el equipo.\n\nVamos a ver qué pasó en su sesión de Planning Poker.\""
+            },
+            "slide13": {
+                        "title": "Demostración - Historia HU-3 (Password Reset)",
+                        "duration": "15 min",
+                        "script": `"OK, momento de la verdad.
+
+El equipo vota por HU-3.
+
+Scrum Master dice: 'Todos listos? 3, 2, 1, revelar!'
+
+[PAUSA DRAMÁTICA]
+
+Los votos:
+
+- **Ana (Dev Backend):** 2
+- **Carlos (Dev Frontend):** 3
+- **María (Tester QA):** 5
+- **Pedro (Dev Fullstack):** 13
+- **Laura (Arquitecta):** 8
+
+[VER GRÁFICO en slide con las cartas]
+
+[REACCIÓN]
+
+ENORME dispersión: **2 a 13**.
+
+Diferencia de **6.5x** entre extremos.
+
+[PAUSA]
+
+Scrum Master: 'OK, tenemos que hablar. Ana, empecemos contigo. ¿Por qué 2?'
+
+---
+
+**Ana (Dev Backend - votó 2):**
+
+'Bueno, es bastante directo.
+
+Yo lo comparo con HU-2 (Registro), que fue 3 puntos.
+
+Password Reset es MÁS SIMPLE porque:
+
+1. **Ya tenemos infraestructura de email** (la usamos para confirmación en HU-2)
+2. **Ya sabemos hash passwords** (hicimos en HU-1 y HU-2)
+3. **El form es más simple** (solo email, después solo 2 campos de password)
+4. **No hay validaciones complejas** (solo email válido y password match)
+
+Entonces, menos complejo que HU-2 (3 pts) → le pongo **2 puntos**.'
+
+[PAUSA]
+
+**Scrum Master:** 'OK, gracias Ana. Pedro, ahora vos. ¿Por qué 13?'
+
+---
+
+**Pedro (Dev Fullstack - votó 13):**
+
+[Suspira]
+
+'Yo veo MUCHA complejidad que Ana no mencionó.
+
+**1. Seguridad:**
+
+El token tiene que ser:
+- Criptográficamente seguro (no un simple random())
+- Único (check en DB que no existe)
+- Temporal (expira en 1 hora)
+- Invalidado después de uso (no reusable)
+
+Eso es una **tabla nueva** en DB: \`password_reset_tokens\`.
+
+**2. Email:**
+
+Ana dice 'ya tenemos email'. Sí, para CONFIRMACIÓN (un template simple).
+
+Pero reset password es diferente:
+- Necesitamos OTRO template
+- Con link que incluye token
+- Link a página que NO existe aún (form de reset)
+
+**3. Página nueva de reset:**
+
+No es modificar login, es página NUEVA:
+- Route /reset-password/:token
+- Validar token (existe? expiró? ya se usó?)
+- Form con UX específica
+- Manejo de errores (token inválido, expirado, etc.)
+
+**4. Testing:**
+
+María (tester) votó 5, así que ella también ve complejidad.
+
+Hay que testear:
+- Happy path
+- Token expirado (¿cómo simulo paso de 1 hora?)
+- Token ya usado
+- Token inexistente
+- Email inexistente
+- Passwords que no matchean
+
+**5. Edge cases:**
+
+- ¿Qué pasa si pido reset 5 veces? ¿5 emails con 5 tokens?
+- ¿O invalido el anterior?
+- ¿Hay rate limiting? (prevenir abuse)
+- ¿Logging de intentos de reset? (auditoría de seguridad)
+
+[ÉNFASIS]
+
+Por todo eso, le pongo **13 puntos**.
+
+De hecho, casi le pongo '?' porque hay incertidumbre en seguridad.'
+
+[PAUSA LARGA]
+
+---
+
+**Scrum Master:** 'Guau. OK. Ana, ¿qué pensás de lo que dijo Pedro?'
+
+---
+
+**Ana:** 'Uh... tenés razón en varias cosas.
+
+Yo asumí que:
+- Tabla de tokens ya existía (no sé por qué asumí eso)
+- Template de email era trivial (pero el link con token sí complica)
+- Página de reset la podíamos hacer en login route (pero tenés razón, necesita route separada)
+
+No pensé en rate limiting ni en abuse.
+
+Ni en logging.
+
+[PAUSA]
+
+Cambio mi voto. No es 2, es más bien... ¿5? ¿Tal vez 8?'
+
+---
+
+**Scrum Master:** 'OK. María (tester), vos votaste 5. ¿Por qué?'
+
+---
+
+**María (Tester QA - votó 5):**
+
+'Yo pensé en testing.
+
+HU-2 (Registro) fue 3 puntos, y el testing fue ~20% del esfuerzo.
+
+Password Reset tiene MÁS casos edge:
+- Expiración
+- Tokens inválidos
+- Rate limiting (si lo hacemos)
+
+Pero tampoco es 13. Es más complejo que Registro (3), pero no 4 veces más.
+
+Le puse **5**: moderadamente más complejo.'
+
+---
+
+**Scrum Master:** 'Laura (arquitecta), vos votaste 8. ¿Tu perspectiva?'
+
+---
+
+**Laura (Arquitecta - votó 8):**
+
+'Yo agregué la perspectiva de diseño.
+
+Pedro tiene razón en complejidad técnica.
+Ana tiene razón en que tenemos piezas.
+
+**Mi análisis:**
+
+**Complejidad TÉCNICA:** Alta (token, seguridad, tabla nueva) → 8-13
+**Complejidad de NEGOCIO:** Baja (flujo claro, bien definido) → 3
+**Riesgo de CAMBIOS:** Bajo (Password reset es standard, no va a cambiar) → 2
+
+Promedio mental: **8 puntos**.
+
+Pero además...
+
+[PAUSA]
+
+Creo que deberíamos dividir esta historia.
+
+**Split en 2:**
+
+**HU-3a: Password Reset - Happy Path** (5 pts)
+- Token generation
+- Email con link
+- Form de reset
+- Actualizar password
+- Testing básico
+
+**HU-3b: Password Reset - Seguridad Hardening** (3 pts)
+- Rate limiting
+- Token expiration enforcement
+- Logging/auditoría
+- Abuse prevention
+- Testing edge cases
+
+**Total: 8 pts, pero dividido para entregar valor incremental.'**
+
+---
+
+**Scrum Master:** 'Interesante. Carlos (frontend), vos votaste 3. ¿Cómo llegaste a ese número?'
+
+---
+
+**Carlos (Dev Frontend - votó 3):**
+
+'Yo solo pensé en el frontend.
+
+Form de email + Form de nueva password = 2 componentes React simples.
+Igual de complejo que form de Registro (HU-2).
+
+Por eso 3.
+
+[PAUSA]
+
+Pero escuchando a Pedro y Laura... claramente me faltó ver backend y seguridad.
+
+Cambio a 5 o 8.'
+
+---
+
+**Scrum Master:** 'OK, resumen:
+
+**Votos originales:**
+- Ana: 2 → cambió a 5-8
+- Carlos: 3 → cambió a 5-8
+- María: 5 → mantiene
+- Laura: 8 → propone split
+- Pedro: 13 → considera bajar
+
+**Opción 1:** Estimamos 8 pts y hacemos completo.
+**Opción 2:** Split en 5 pts + 3 pts (propuesta de Laura).
+
+¿Qué prefiere el equipo?'
+
+[PAUSA]
+
+**Product Owner interviene:**
+
+'Me gusta el split. Prefiero tener Password Reset básico funcionando en este sprint, y hardening en el siguiente si hay tiempo.'
+
+**Equipo acuerda:**
+
+**HU-3a: 5 puntos (Sprint actual)**
+**HU-3b: 3 puntos (Backlog, para después)**
+
+[FIN DE LA HISTORIA]
+
+---
+
+**Debrief para la clase:**
+
+'¿Qué acabamos de ver?
+
+[PAUSA - Esperar respuestas]
+
+**1. Extremos revelaron suposiciones:**
+   - Ana asumió infraestructura lista → voto bajo
+   - Pedro vio complejidad oculta → voto alto
+   - Discusión expuso AMBAS perspectivas
+
+**2. Conocimiento distribuido se capturó:**
+   - Backend (Ana): infraestructura de email
+   - Fullstack (Pedro): seguridad, edge cases
+   - Tester (María): complejidad de testing
+   - Arquitecta (Laura): propuesta de split
+   - Frontend (Carlos): subestimó backend
+
+**3. Resultado NO fue promedio:**
+   - (2+3+5+13+8)/5 = 6.2 → ¿6 pts?
+   - NO. Decidieron **split** en 5+3
+   - Más inteligente que promedio ciego
+
+**4. Historia mejoró:**
+   - Antes: 'Password Reset' (vaga)
+   - Después: 2 historias con alcances claros
+   - Entregable incremental
+
+**5. Alineación:**
+   - Todos ahora entienden la complejidad
+   - Menos sorpresas en implementación
+   - Expectativas realistas
+
+[CONECTAR con Clase 1]
+
+Esto ES el Malvavisco Challenge en versión software.
+
+Los niños probaban el malvavisco ANTES de construir.
+Planning Poker 'prueba' las suposiciones ANTES de codear.
+
+Evita el colapso de la torre de espaguetis.'"`
+            },
+            "slide14": {
+                        "title": "Velocidad - Concepto y Cálculo",
+                        "duration": "10 min",
+                        "script": "Ahora tenemos historias estimadas en Story Points.\n\nPero el stakeholder pregunta: **'¿Cuándo estará listo?'**\n\nStory Points NO responden eso directamente.\n\nAhí entra **Velocidad**.\n\n[DEFINICIÓN]\n\n**Velocidad:**\nCantidad de Story Points que el equipo completa por sprint.\n\n[ÉNFASIS]\n\nVelocidad es **EMPÍRICA**, no estimada:\n\n- NO adivinamos '¿Cuántos puntos haremos?'\n- MEDIMOS '¿Cuántos puntos HICIMOS?'\n- Después de 3-5 sprints, se ESTABILIZA\n- Usamos promedio para forecast\n\n[EJEMPLO]\n\n**Equipo Alfa - Sprints de 2 semanas:**\n\n| Sprint | Puntos Comprometidos | Puntos Completados |\n|--------|----------------------|--------------------|\n| 1 | 25 | 18 |\n| 2 | 20 | 20 |\n| 3 | 25 | 22 |\n| 4 | 25 | 26 |\n| 5 | 28 | 27 |\n\n**Velocidad promedio:** (18+20+22+26+27) / 5 = **22.6 ≈ 23 pts/sprint**\n\n[VER GRÁFICO en slide - Velocidad estabilizándose]\n\n**Sprint 1:** Caos (equipo formándose, estimaciones mal calibradas) → 18 pts\n\n**Sprints 2-3:** Ajuste (mejoran estimaciones) → 20-22 pts\n\n**Sprints 4-5:** Estable (ya conocen su capacidad) → 26-27 pts\n\n**A partir de Sprint 6:** Usar ~25 pts como capacidad esperada.\n\n[FACTORES que afectan Velocidad]\n\n**Aumentan velocidad:**\n- ✅ Equipo se conoce mejor\n- ✅ Menos dependencias externas\n- ✅ Tecnología familiar\n- ✅ Backlog bien refinado\n- ✅ Menos interrupciones\n\n**Disminuyen velocidad:**\n- ❌ Miembro del equipo sale (vacaciones, renuncia)\n- ❌ Tecnología nueva\n- ❌ Deuda técnica acumulada\n- ❌ Interrupciones (producción, reuniones)\n- ❌ Cambios de alcance mid-sprint\n\n[ÉNFASIS CRÍTICO]\n\n**Velocidad es POR EQUIPO, no universal:**\n\n- Equipo A: 25 pts/sprint\n- Equipo B: 40 pts/sprint\n\n¿Equipo B es 'mejor'? **NO.**\n\nStory Points son RELATIVOS a cada equipo:\n- Equipo A tal vez es más conservador estimando\n- Equipo B tal vez usa baseline diferente\n\n**NO se pueden comparar velocidades entre equipos.**\n\n[CÁLCULO en detalle]\n\n**¿Qué contar?**\n\n✅ **Contar:** Historias 100% completadas (Done según DoD)\n❌ **NO contar:** Historias 90% completadas\n❌ **NO contar:** Tareas técnicas no estimadas\n❌ **NO contar:** Bugs (algunos equipos sí, otros no - definir política)\n\n**Ejemplo:**\n\nSprint 5:\n- HU-12: 5 pts → ✅ Done\n- HU-13: 8 pts → ✅ Done\n- HU-14: 13 pts → ❌ 80% completa (NO cuenta)\n- HU-15: 3 pts → ✅ Done\n- Bug fix: ❌ Sin puntos (no cuenta)\n\n**Velocidad Sprint 5:** 5 + 8 + 3 = **16 pts**\n\n[PAUSA]\n\n¿Por qué HU-14 NO cuenta aunque está 80% hecha?\n\nPorque Ágil valora **software funcionando**.\n\n80% NO es funcionando. Es 0% de valor entregado.\n\nEsto evita 'gaming' del sistema:\n- NO dividir historia al final para 'contar puntos'\n- Incentiva terminar pocas cosas bien vs muchas cosas a medias\n\n[TRANSICIÓN]\n\nOK, tenemos Velocidad.\n\n¿Cómo la usamos para forecasting?\""
+            },
+            "slide15": {
+                        "title": "Forecasting con Velocidad",
+                        "duration": "7 min",
+                        "script": "Ahora sí, respondemos la pregunta del stakeholder:\n\n**'¿Cuándo estará listo?'**\n\n[FÓRMULA simple]\n\n**Forecast = Total Story Points / Velocidad**\n\n**Ejemplo:**\n\nBacklog del Feature X:\n- 15 historias estimadas\n- Total: **120 Story Points**\n\nVelocidad del equipo:\n- Promedio últimos 5 sprints: **25 pts/sprint**\n\n**Forecast:**\n\n120 pts / 25 pts/sprint = **4.8 sprints ≈ 5 sprints**\n\nSi sprints son 2 semanas → **10 semanas**\n\n[VER GRÁFICO en slide - Timeline con velocidad]\n\n**Sprint 6:** 25 pts → Quedan 95\n**Sprint 7:** 25 pts → Quedan 70\n**Sprint 8:** 25 pts → Quedan 45\n**Sprint 9:** 25 pts → Quedan 20\n**Sprint 10:** 20 pts → ✅ Done\n\n[PERO... incertidumbre]\n\n¿Recuerdan el Cono de Incertidumbre (Clase 1)?\n\nForecast NO es fecha exacta. Es RANGO.\n\n**Velocidad tiene variación:**\n\nEquipo Alfa:\n- Sprint 1: 18 pts\n- Sprint 2: 20 pts\n- Sprint 3: 22 pts\n- Sprint 4: 26 pts\n- Sprint 5: 27 pts\n\n**Promedio:** 22.6 pts\n**Desviación estándar:** ±3.5 pts\n**Rango:** 19-26 pts\n\n[FORECAST CON RANGO]\n\nTotal: 120 pts\n\n**Escenario Optimista (velocidad alta: 26 pts/sprint):**\n120 / 26 = 4.6 sprints ≈ **5 sprints (10 semanas)**\n\n**Escenario Esperado (velocidad promedio: 23 pts/sprint):**\n120 / 23 = 5.2 sprints ≈ **5-6 sprints (10-12 semanas)**\n\n**Escenario Pesimista (velocidad baja: 19 pts/sprint):**\n120 / 19 = 6.3 sprints ≈ **6-7 sprints (12-14 semanas)**\n\n[ÉNFASIS]\n\n**Comunicación honesta al stakeholder:**\n\n❌ **MAL:** 'Estará listo en 10 semanas.'\n\n✅ **BIEN:** 'Basado en velocidad histórica, estimamos 10-12 semanas, con rango de 8-14 semanas.'\n\n[PAUSA]\n\nEsto es HONESTIDAD vs falsa precisión.\n\n¿Recuerdan PERT (inicio de clase)?\n\n- Optimista (O): 8 semanas\n- Más probable (M): 11 semanas\n- Pesimista (P): 14 semanas\n- Esperanza: (8 + 4×11 + 14) / 6 ≈ **11 semanas**\n\nForecast con Velocidad es similar:\n- Basado en DATOS REALES (no adivinar)\n- Con RANGO de incertidumbre (no número falso)\n\n[TRANSICIÓN]\n\nOK, vimos Planning Poker + Velocidad.\n\nCerremos con comparación y síntesis...\""
+            },
+            "slide16": {
+                        "title": "Cuadro Comparativo - PERT vs Ágil vs CCPM",
+                        "duration": "8 min",
+                        "script": "Momento de síntesis.\n\nVimos 3 enfoques hoy:\n\n1. **PERT / CPM** (clásicos, años 50-60)\n2. **Ágil** (Scrum, Planning Poker, años 2000)\n3. **CCPM** (lo veremos Clase 3, pero preview ahora)\n\n[VER TABLA COMPARATIVA en slide]\n\nVoy a leer fila por fila:\n\n\n**Fila: Unidad de estimación**\n\n- **PERT:** Horas o días (tiempo absoluto)\n- **Ágil:** Story Points (complejidad relativa)\n- **CCPM:** Días/horas pero con buffers agregados\n\n\n**Fila: Quién estima**\n\n- **PERT:** PM o especialista (individual)\n- **Ágil:** Equipo completo (colaborativo)\n- **CCPM:** Equipo + PM (híbrido)\n\n\n**Fila: Técnica**\n\n- **PERT:** 3 puntos (O-M-P), fórmula estadística\n- **Ágil:** Planning Poker, Fibonacci, consenso\n- **CCPM:** 50% de estimación + buffers agregados\n\n\n**Fila: Gestión de incertidumbre**\n\n- **PERT:** Varianza distribuida en cada tarea\n- **Ágil:** Velocidad empírica + refinamiento progresivo\n- **CCPM:** Buffers centralizados (proyecto, feeding, resource)\n\n\n**Fila: Adaptación a cambios**\n\n- **PERT:** Baja (plan fijo, re-planificar costoso)\n- **Ágil:** Alta (re-priorización cada sprint)\n- **CCPM:** Media (plan fijo pero buffers absorben variación)\n\n\n**Fila: Cuándo usar**\n\n**PERT:**\n- Proyecto con fases claramente definidas\n- Poca incertidumbre técnica\n- Regulatorio (construcción, farmacéutica)\n\n**Ágil:**\n- Alta incertidumbre de requisitos\n- Necesidad de feedback temprano\n- Equipos auto-organizados\n- Software con iteraciones cortas\n\n**CCPM:**\n- Múltiples proyectos paralelos\n- Recursos compartidos entre proyectos\n- Cuellos de botella críticos\n- Necesidad de entregar MÁS RÁPIDO (acortar timelines)\n\n\n[PAUSA]\n\n**Pregunta clave:**\n\n**'¿Cuál es MEJOR?'**\n\n[Esperar respuestas]\n\n**Respuesta: DEPENDE del contexto.**\n\nNo hay 'bala de plata'.\n\n[PREVIEW Clase 3]\n\n**En Clase 3 veremos:**\n\n**CCPM (Critical Chain Project Management)**\n\nLa idea central:\n\n**NO gestionar incertidumbre tarea por tarea.**\n\n**Gestionar incertidumbre CENTRALIZADAMENTE con buffers agregados.**\n\n[ANTICIPAR]\n\n**Clase 3 responderá:**\n\n1. ¿Cómo identificar Cadena Crítica (≠ Ruta Crítica)?\n2. ¿Cómo dimensionar buffers (proyecto, feeding, resource)?\n3. ¿Cómo monitorear con Fever Chart?\n4. ¿Cómo gestionar cartera de múltiples proyectos?\n\n[TRANSICIÓN]\n\nClase 2 casi completa.\n\nSíntesis final...\""
+            },
+            "slide17": {
+                        "title": "Síntesis de Clase 2",
+                        "duration": "5 min",
+                        "script": "OK, sinteticemos Clase 2.\n\n**¿Qué vimos?**\n\n\n**PARTE 1: Métodos Clásicos (50 min)**\n\n**PERT:**\n- 3 puntos (O-M-P)\n- μ = (O + 4M + P) / 6\n- Reconoce incertidumbre con varianza\n- Problema: varianzas se suman, proyectos se alargan\n\n**CPM:**\n- Ruta Crítica: secuencia más larga\n- Tareas en ruta crítica NO tienen holgura\n- Optimizar ruta crítica acorta proyecto\n- Problema: ignora recursos (asume infinitos)\n\n\n**PARTE 2: Estimación Ágil (80 min)**\n\n**Story Points:**\n- Unidad relativa de complejidad (NO horas)\n- Fibonacci: 1, 2, 3, 5, 8, 13, 21\n- T-Shirt Sizing: XS, S, M, L, XL\n\n**Planning Poker:**\n- Técnica colaborativa\n- Todos votan simultáneamente\n- Extremos explican → suposiciones salen a la luz\n- Convergen a consenso\n\n**Velocidad:**\n- Puntos completados por sprint\n- Empírica (medida, no estimada)\n- Se estabiliza después de 3-5 sprints\n- Forecast = Total pts / Velocidad\n\n\n**Mensajes Clave de Clase 2:**\n\n**1. NO existe 'la mejor técnica'**\n- Contexto determina método apropiado\n\n**2. Colaboración > Individual**\n- Planning Poker captura conocimiento distribuido\n- Extremos revelan suposiciones\n\n**3. Empírico > Teórico**\n- Velocidad basada en datos reales\n- Forecast se ajusta con feedback\n\n**4. Honestidad > Precisión falsa**\n- Rangos de incertidumbre explícitos\n- Story Points reconocen que NO sabemos exacto\n\n\n**Conexión con Clase 1:**\n\n**Clase 1 diagnosticó el problema:**\n- Estimaciones fallan sistemáticamente\n- Cono de Incertidumbre: ±400% al inicio\n- Factores psicológicos (Parkinson, Estudiante)\n- Malvavisco Challenge: probar suposiciones temprano\n\n**Clase 2 presentó herramientas:**\n- PERT: reconocer incertidumbre con 3 puntos\n- Ágil: iteración corta + feedback empírico\n- Planning Poker: exponer suposiciones ANTES de construir\n\n\n**Setup para Clase 3:**\n\n**Pregunta pendiente:**\n\n'¿Y si el problema NO es estimar mejor...\n...sino GESTIONAR la incertidumbre?'\n\n**CCPM (Critical Chain) propone:**\n\n1. **Aceptar** que estimaciones individuales son malas\n2. **Quitar** colchones individuales (previene Parkinson)\n3. **Agregar** buffers centralizados (protege entrega)\n4. **Monitorear** consumo de buffer (Fever Chart)\n\n**Resultado:**\n- Timelines 20-30% más cortos\n- Sin agregar recursos\n- Mayor % de proyectos on-time\n\n[ÉNFASIS]\n\nClase 3 es el **cambio de paradigma**:\n\nDe 'estimar cada tarea perfectamente'\nA 'proteger el proyecto como sistema'\n\n\n**Nos vemos en Clase 3.\"**"
+            },
+            "slide18": {
+                        "title": "Cierre y Preview Clase 3",
+                        "duration": "3 min",
+                        "script": "Excelente trabajo hoy.\n\n**Clase 2 completada.**\n\n\n**Recap:**\n\n✅ Vimos 3 enfoques de estimación\n✅ Profundizamos en Planning Poker (el core)\n✅ Entendimos Velocidad y Forecasting\n✅ Comparamos métodos según contexto\n\n\n**Próxima clase (Clase 3):**\n\n**Título:** Cadena Crítica y Gestión de Buffers\n\n**Contenido:**\n\n1. **Teoría de Restricciones (TOC):** Base conceptual\n2. **Cadena Crítica vs Ruta Crítica:** Diferencias clave\n3. **Tipos de Buffers:** Proyecto, Feeding, Resource\n4. **Caso A-B-C-D:** Walkthrough completo (el momento 'aha!')\n5. **Fever Chart:** Monitoreo visual\n6. **Cartera de Proyectos:** Gestión multi-proyecto\n\n**Duración:** 3 horas\n\n**Formato:** Remoto / Teórico con caso detallado\n\n\n**Por qué NO perderse Clase 3:**\n\n**CCPM es el método que MENOS gente conoce...**\n**...pero el que MÁS impacto tiene en timelines reales.**\n\nVerán:\n- Cómo 4 tareas de 10 días c/u NO toman 40 días\n- Cómo quitar 'colchones' individuales ACELERA proyectos\n- Cómo buffer al final PROTEGE mejor que buffers distribuidos\n\n**Es contra-intuitivo.**\n\nY por eso funciona.\n\n\n**¡Nos vemos en Clase 3!**\n\n**Preguntas finales antes de cerrar?\"**"
+            },
+            "slide19": {
+                        "title": "Flujo de Refinamiento Progresivo",
+                        "duration": "6 min",
+                        "script": "Antes de la tabla comparativa, un concepto muy práctico: **Refinamiento Progresivo**.\n\n[LEER slide]\n\n**Refinamiento Progresivo** combina T-Shirt Sizing y Story Points en fases:\n\n[EXPLICAR Fase 1]\n\n**1. Fase Roadmap (Trimestral):**\n\nEstás planificando el trimestre.\n\nTenés 50 Epics en backlog.\n\nNO necesitás precisión. Necesitás orden de magnitud.\n\n**Proceso:**\n- Stakeholders y PO asignan T-Shirt: XS, S, M, L, XL\n- Duración: 2 horas para 50 Epics\n- Resultado: Roadmap aproximado ('Tenemos 10 L, 15 M, 25 S')\n\n**Ejemplo:**\n'Migrar base de datos a Azure SQL' → Esto es un **Large** (L)\n\nNO sabemos exactamente cuánto toma. Pero sabemos que es grande.\n\n[EXPLICAR Fase 2]\n\n**2. Fase Sprint Planning (Quincenal):**\n\nAhora estás planificando el próximo sprint (2 semanas).\n\nEl Epic 'L' (Migrar DB) está en top priority.\n\nAhí lo **refinás**:\n\nProceso:\n- Dividir Epic L en User Stories más chicas\n- Sesión de Planning Poker para estimar cada historia\n- Asignar Story Points (Fibonacci)\n\n**Ejemplo:**\n\nEpic 'Migrar DB' (L) se divide en:\n- 'Configurar servidor Azure' → 5 pts\n- 'Migrar esquema de tablas' → 8 pts\n- 'Validar integridad de datos' → 3 pts\n\nTotal: 16 pts (confirma que era L).\n\n[PAUSA]\n\n**Beneficio:**\n\nNO perdés tiempo estimando con precisión cosas que van a cambiar.\n\nSolo refinás lo que vas a trabajar PRONTO.\n\n[ANALOGÍA]\n\nImagina que planificas un viaje de 3 meses por Europa.\n\n**Fase Roadmap:** 'Voy a París (1 semana), Roma (1 semana), Berlín (1 semana)...'\n\n**Fase Sprint Planning:** Ahora estás por viajar a París la semana que viene.\n\nAhí planificas día a día: 'Lunes Louvre, Martes Torre Eiffel, Miércoles Versalles...'\n\nNO planificas Roma día a día AHORA. Lo hacés cuando estés cerca.\n\n[ÉNFASIS]\n\nEsto es **refinamiento progresivo**:\n\nDe lo general (T-Shirt) a lo específico (Story Points).\n\nDel trimestre (Roadmap) al sprint (Planning).\n\n[TRANSICIÓN]\n\nAhora, la tabla comparativa de todos los métodos...\""
+            },
+            "slide20": {
+                        "title": "Cuadro Comparativo de Métodos",
+                        "duration": "7 min",
+                        "script": "OK, pongamos todo en perspectiva.\n\n[LEER TABLA]\n\n**Cuadro Comparativo:**\n\n| Método | Escala | Uso Principal | Ventaja Clave |\n\n[IR FILA POR FILA]\n\n**1. PERT:**\n- **Escala:** 3 puntos (Optimista, Más Probable, Pesimista)\n- **Uso:** Tareas individuales con incertidumbre\n- **Ventaja:** Cuantifica incertidumbre con desviación estándar\n\n**Ejemplo:** 'Implementar autenticación: O=3 días, M=7 días, P=15 días → μ=7.7 días, σ=2 días'\n\n**Cuándo usar:** Proyectos con tareas bien definidas pero timing incierto.\n\n[PAUSA]\n\n**2. CPM (Critical Path Method):**\n- **Escala:** Días fijos\n- **Uso:** Identificar ruta crítica en proyecto con dependencias\n- **Ventaja:** Determina duración total, muestra dónde optimizar\n\n**Ejemplo:** 'Ruta A→B→D toma 21 días (crítica), Ruta A→C→E toma 15 días (holgura 6 días)'\n\n**Cuándo usar:** Proyectos tipo cascada con tareas secuenciales claras.\n\n[PAUSA]\n\n**3. T-Shirt Sizing:**\n- **Escala:** XS, S, M, L, XL, XXL\n- **Uso:** Roadmaps trimestrales, Epics\n- **Ventaja:** Rápido, intuitivo, sin falsa precisión\n\n**Ejemplo:** 'Migración de DB es L, Nuevo dashboard es M, Fix bug es XS'\n\n**Cuándo usar:** Backlog grande que necesita clasificación rápida.\n\n[PAUSA]\n\n**4. Story Points:**\n- **Escala:** Fibonacci (0, 1, 2, 3, 5, 8, 13, 21...)\n- **Uso:** Sprint Planning, cálculo de Velocidad\n- **Ventaja:** Precisión relativa, separa complejidad de tiempo\n\n**Ejemplo:** 'Login básico es 2 pts, Registro es 3 pts (baseline), Checkout es 8 pts'\n\n**Cuándo usar:** Equipos ágiles con sprints recurrentes.\n\n[PAUSA]\n\n**5. Planning Poker:**\n- **Escala:** N/A (es un proceso, no una escala)\n- **Uso:** Lograr consenso de equipo en estimaciones\n- **Ventaja:** Expone suposiciones ocultas, alinea entendimiento\n\n**Ejemplo:** 'Dev dice 2 pts, Tester dice 8 pts → discuten → descubren que Dev olvidó testing E2E'\n\n**Cuándo usar:** SIEMPRE que estimes con Story Points. Es EL método para hacerlo.\n\n[RESUMEN]\n\nNingún método es 'mejor' que otro.\n\nCada uno sirve para un **contexto** diferente.\n\nLa pregunta no es '¿Cuál es el mejor?'\n\nLa pregunta es '¿Cuál es el apropiado PARA ESTE proyecto?'\n\n[TRANSICIÓN]\n\nVeamos eso más en detalle...\""
+            },
+            "slide21": {
+                        "title": "¿Cuándo Usar Cada Método?",
+                        "duration": "8 min",
+                        "script": "La pregunta del millón: **¿Cuándo usar qué?**\n\n[LEER SLIDE - Sección 1]\n\n**PERT / CPM:**\n\n**Contexto ideal:**\n- Construcción, Ingeniería, Manufactura\n- Proyectos predecibles con tareas claras\n- Alcance bien definido desde el inicio\n- Pocas restricciones de recursos (o fáciles de gestionar)\n\n**Ejemplo real:**\nConstruir un puente.\n\n- Tareas: Cimientos, Pilares, Estructura, Pavimento\n- Dependencias: Claras (no podés hacer pilares antes de cimientos)\n- Timing: Relativamente predecible\n- Recursos: Cuadrillas especializadas asignadas por fase\n\n**Ventaja de PERT/CPM aquí:**\nPERT captura incertidumbre (clima, retrasos de materiales).\nCPM identifica ruta crítica (si pilares se retrasan, TODO se retrasa).\n\n[PAUSA]\n\n**Cuándo NO usar PERT/CPM:**\n\n❌ Requisitos cambiantes (no funciona si el cliente cambia de idea mid-proyecto)\n❌ Alta incertidumbre técnica (no sabés CÓMO resolver el problema)\n❌ Recursos contendidos (misma persona en múltiples tareas)\n\n[LEER SLIDE - Sección 2]\n\n**Agile (T-Shirt + Story Points + Planning Poker):**\n\n**Contexto ideal:**\n- Software, I+D, Innovación\n- Requisitos emergentes o cambiantes\n- Alta incertidumbre en el QUÉ construir\n- Necesidad de feedback frecuente\n\n**Ejemplo real:**\nStartup construyendo MVP de app móvil.\n\n- NO sabés exactamente qué features van a resonar con usuarios\n- Cada sprint descubrís algo nuevo\n- Priorizás según feedback\n- Velocidad permite forecasting empírico\n\n**Ventaja de Agile aquí:**\nNo perdés 6 meses planificando algo que va a cambiar.\nIterás, aprendés, pivotás.\n\n[PAUSA]\n\n**Cuándo NO usar Agile:**\n\n❌ Requisitos fijos y contractuales (cliente quiere exactitud desde día 1)\n❌ Proyectos con dependencias externas rígidas (ej: lanzamiento sincronizado con hardware)\n❌ Equipos sin autonomía (necesitan aprobaciones para cada decisión)\n\n[ÉNFASIS]\n\nLa diferencia clave:\n\n**PERT/CPM asume:** 'Sabemos QUÉ construir, estimemos CUÁNTO toma.'\n\n**Agile asume:** 'NO sabemos QUÉ construir, aprendamos HACIENDO.'\n\n[PAUSA - Gancho Clase 3]\n\n[LEER mensaje final del slide]\n\n'Próxima clase: ¿Qué método gestiona mejor los RECURSOS y el RIESGO?'\n\n[TONO misterioso]\n\nPista: Ni PERT, ni Agile lo hacen perfecto.\n\nCCPM tiene una respuesta diferente.\n\n[TRANSICIÓN]\n\nHablando de Clase 3, refresquemos la pregunta crítica...\""
+            },
+            "slide22": {
+                        "title": "La Pregunta Crítica (Reprise)",
+                        "duration": "5 min",
+                        "script": "Recordemos la pregunta de Clase 1.\n\n[LEER slide - mensaje central]\n\n**¿DÓNDE ponemos la seguridad para proteger REALMENTE al proyecto?**\n\n[PAUSA]\n\nVimos 3 respuestas hoy:\n\n[LEER respuestas]\n\n**1. CPM la pone en HOLGURA distribuida:**\n\nCada tarea tiene su colchón.\n\nProblema: Parkinson come el colchón. Student Syndrome desperdicia tiempo temprano.\n\n**Resultado:** Vulnerable.\n\n[PAUSA]\n\n**2. Agile la maneja con ITERACIÓN:**\n\nNo planificás 6 meses. Planificás 2 semanas.\n\nCada sprint re-planificás basado en lo aprendido.\n\n**Resultado:** Adaptabilidad, pero NO protege timeline global.\n\n[PAUSA]\n\n**3. CCPM tiene una respuesta diferente: BUFFERS AGREGADOS**\n\n[ÉNFASIS - tono intrigante]\n\n¿Qué significa 'agregado'?\n\nEn vez de colchones en CADA tarea...\n\n...CCPM pone UN buffer GRANDE al final.\n\n[PAUSA]\n\nEsto suena contra-intuitivo.\n\n'¿Cómo puede ser MEJOR poner todo el margen al final?'\n\nEsa es la pregunta que vamos a responder en Clase 3.\n\n[SPOILER parcial]\n\nLes adelanto el concepto:\n\nSi cada tarea tiene colchón, Parkinson lo come.\n\nSi NADIE tiene colchón individual, trabajan a velocidad realista.\n\nY el buffer agregado al final PROTEGE sin ser desperdiciado.\n\n[PAUSA]\n\nEs como el Marshmallow Challenge:\n\nMBAs planearon con colchones individuales → perdieron tiempo.\n\nNiños trabajaron rápido sin colchones → el 'buffer' era iterar.\n\n[TONO de cierre]\n\nCCPM es el método que MENOS gente conoce...\n\n...pero el que MÁS impacto real tiene en cronogramas.\n\n[TRANSICIÓN]\n\nAntes de cerrar, resumen de hoy...\""
+            },
+            "slide23": {
+                        "title": "Resumen de la Clase 2",
+                        "duration": "4 min",
+                        "script": "Resumen de la Clase 2.\n\n[LEER lista completa]\n\n**Métodos Aprendidos:**\n\n✅ **PERT (3 puntos):**\nDuración Esperada = (O + 4M + P) / 6\nDesviación Estándar = (P - O) / 6\n\n✅ **CPM (Ruta Crítica):**\nIdentifica secuencia más larga.\nHolgura en tareas no-críticas.\nPero ignora recursos y factores humanos.\n\n✅ **T-Shirt Sizing:**\nXS, S, M, L, XL para roadmaps y epics.\nRápido, intuitivo, sin falsa precisión.\n\n✅ **Story Points:**\nFibonacci (0, 1, 2, 3, 5, 8, 13, 21).\nRepresenta Esfuerzo + Complejidad + Incertidumbre.\nRelativo, no absoluto.\n\n✅ **Planning Poker:**\nConsenso colaborativo.\nVotación anónima, revelar simultáneo.\nDiscusión de extremos expone suposiciones.\n\n✅ **Velocidad:**\nPuntos completados por sprint.\nPermite forecasting empírico: (Backlog / Velocidad = Sprints).\n\n✅ **Flujo de Refinamiento Progresivo:**\nT-Shirt Sizing para trimestre → Story Points para sprint.\nRefinas solo lo que vas a trabajar pronto.\n\n[PAUSA]\n\n**Concepto clave de hoy:**\n\nNo hay 'mejor método'.\n\nHay 'método apropiado para este contexto'.\n\nPERT/CPM: Proyectos predecibles.\nAgile: Proyectos emergentes.\nCCPM: (próxima clase) Proyectos con recursos contendidos.\n\n[LEER mensaje final]\n\n🎯 **Próxima Clase:**\n\nCadena Crítica (CCPM) - La solución de Goldratt.\n\nCómo gestionar recursos Y buffers simultáneamente.\n\nEl caso A-B-C-D que muestra por qué CPM falla.\n\n[TONO entusiasta]\n\nEs la clase más contra-intuitiva.\n\nY la más poderosa.\n\nNo se la pierdan.\n\n[TRANSICIÓN]\n\n¡Gracias por participar activamente en Planning Poker!\n\nNos vemos en Clase 3.\""
+            },
+            "slide24": {
+                        "title": "Fin de la Clase 2",
+                        "duration": "1 min",
+                        "script": "¡Fin de la Clase 2!\n\n[PAUSA]\n\nGracias por su participación activa en Planning Poker.\n\nEspero que hayan visto el valor de estimar colaborativamente.\n\nNo solo obtenemos números.\n\nObtenemos **alineación** de suposiciones.\n\n[PAUSA]\n\n**Nos vemos en Clase 3:**\n\nCadena Crítica y Gestión de Buffers.\n\nEl método que cambia TODO.\n\n[DESPEDIDA]\n\n¡Hasta la próxima!\n\n**Alejandro Sfrede**\nÁrea de Arquitectura\""
+            }
+};
+
+        // Navigation and TTS Variables
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let speechSynthesis = window.speechSynthesis;
+        let currentUtterance = null;
+        let currentSpeed = 1.2; // Default 1.2x for teaching
+        let ttsMode = 'browser'; // 'browser' or 'openai'
+        let currentVoice = 'browser:es-ES-female'; // Default voice
+        let selectedBrowserVoice = null;
+        let selectedOpenAIVoice = 'nova';
+        const OPENAI_API_KEY = CONFIG.OPENAI_API_KEY; // Loaded from config.js
+        let isSpeaking = false;
+
+        // Show Slide Function
+        function showSlide(n) {
+            if (n >= totalSlides) n = totalSlides - 1;
+            if (n < 0) n = 0;
+
+            currentSlide = n;
+
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                }
+            });
+
+            // Update progress bar
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            // Update counter
+            document.getElementById('slideCounter').textContent = `${currentSlide + 1} / ${totalSlides}`;
+
+            // Update buttons
+            document.getElementById('prevBtn').disabled = (currentSlide === 0);
+            document.getElementById('nextBtn').disabled = (currentSlide === totalSlides - 1);
+
+            // Update sidebar content
+            updateSidebarContent();
+
+            // Stop TTS when changing slides
+            stopTTS();
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        // Update Sidebar Content
+        function updateSidebarContent() {
+            const slideKey = `slide${currentSlide + 1}`;
+            const speechData = speechDataClase2[slideKey];
+
+            if (speechData) {
+                document.getElementById('speechTitle').textContent = speechData.title;
+                document.getElementById('speechDuration').textContent = speechData.duration;
+
+                // Format script with visual markers
+                const formattedScript = formatScriptWithMarkers(speechData.script);
+                document.getElementById('speechContent').innerHTML = formattedScript;
+            }
+        }
+
+        // Format Script with Visual Markers
+        function formatScriptWithMarkers(script) {
+            let formatted = script;
+
+            // Replace markers with styled spans
+            formatted = formatted.replace(/\[PAUSA\]/g, '<span class="marker marker-pausa">⏸ PAUSA</span>');
+            formatted = formatted.replace(/\[ÉNFASIS\]/g, '<span class="marker marker-enfasis">‼ ÉNFASIS</span>');
+            formatted = formatted.replace(/\[TRANSICIÓN\]/g, '<span class="marker marker-transicion">➡ TRANSICIÓN</span>');
+            formatted = formatted.replace(/\[LEER[^\]]*\]/g, '<span class="marker marker-leer">📖 LEER</span>');
+            formatted = formatted.replace(/\[PREGUNTAS?\]/g, '<span class="marker marker-preguntas">❓ PREGUNTAS</span>');
+            formatted = formatted.replace(/\[SEÑALAR[^\]]*\]/g, '<span class="marker marker-leer">👉 SEÑALAR</span>');
+            formatted = formatted.replace(/\[VER[^\]]*\]/g, '<span class="marker marker-leer">👀 VER</span>');
+            formatted = formatted.replace(/\[TONO[^\]]*\]/g, '<span class="marker marker-enfasis">🎭 TONO</span>');
+            formatted = formatted.replace(/\[ANALOGÍA\]/g, '<span class="marker marker-transicion">💡 ANALOGÍA</span>');
+            formatted = formatted.replace(/\[EJEMPLO[^\]]*\]/g, '<span class="marker marker-transicion">📝 EJEMPLO</span>');
+            formatted = formatted.replace(/\[CASO[^\]]*\]/g, '<span class="marker marker-transicion">📊 CASO</span>');
+            formatted = formatted.replace(/\[CONEXIÓN[^\]]*\]/g, '<span class="marker marker-transicion">🔗 CONEXIÓN</span>');
+            formatted = formatted.replace(/\[MENSAJE[^\]]*\]/g, '<span class="marker marker-enfasis">💬 MENSAJE</span>');
+            formatted = formatted.replace(/\[RECAPITULAR\]/g, '<span class="marker marker-leer">📋 RECAPITULAR</span>');
+            formatted = formatted.replace(/\[PREGUNTA[^\]]*\]/g, '<span class="marker marker-preguntas">❓ PREGUNTA</span>');
+            formatted = formatted.replace(/\[ESPERAR[^\]]*\]/g, '<span class="marker marker-pausa">⏳ ESPERAR</span>');
+            formatted = formatted.replace(/\[CONTRASTE\]/g, '<span class="marker marker-transicion">⚖ CONTRASTE</span>');
+            formatted = formatted.replace(/\[APLICACIÓN\]/g, '<span class="marker marker-transicion">🔧 APLICACIÓN</span>');
+            formatted = formatted.replace(/\[DIFERENCIA\]/g, '<span class="marker marker-transicion">↔ DIFERENCIA</span>');
+            formatted = formatted.replace(/\[EXPLICAR\]/g, '<span class="marker marker-leer">📢 EXPLICAR</span>');
+            formatted = formatted.replace(/\[ANÁLISIS\]/g, '<span class="marker marker-leer">🔍 ANÁLISIS</span>');
+            formatted = formatted.replace(/\[TRADUCCIÓN[^\]]*\]/g, '<span class="marker marker-transicion">🔄 TRADUCCIÓN</span>');
+            formatted = formatted.replace(/\[LECCIÓN[^\]]*\]/g, '<span class="marker marker-enfasis">🎓 LECCIÓN</span>');
+            formatted = formatted.replace(/\[WARNING[^\]]*\]/g, '<span class="marker marker-enfasis">⚠ WARNING</span>');
+            formatted = formatted.replace(/\[RESULTADOS\]/g, '<span class="marker marker-leer">📊 RESULTADOS</span>');
+            formatted = formatted.replace(/\[CONTEXTO[^\]]*\]/g, '<span class="marker marker-leer">📚 CONTEXTO</span>');
+            formatted = formatted.replace(/\[ANTICIPAR\]/g, '<span class="marker marker-pausa">🔮 ANTICIPAR</span>');
+            formatted = formatted.replace(/\[SONREÍR\]/g, '<span class="marker marker-pausa">😊 SONREÍR</span>');
+
+            return formatted;
+        }
+
+        // Voice Selection Function
+        function onVoiceChange() {
+            const selector = document.getElementById('voiceSelector');
+            currentVoice = selector.value;
+
+            // Parse mode and voice
+            const [mode, voice] = currentVoice.split(':');
+            ttsMode = mode;
+
+            // Stop current TTS if playing
+            if (isSpeaking) {
+                stopTTS();
+            }
+
+            // Update status
+            const statusDiv = document.getElementById('ttsStatus');
+            if (mode === 'openai') {
+                selectedOpenAIVoice = voice;
+                statusDiv.textContent = `✨ OpenAI: ${voice}`;
+                statusDiv.style.color = '#667eea';
+            } else {
+                // Find best matching browser voice
+                selectedBrowserVoice = findBrowserVoice(voice);
+                statusDiv.textContent = selectedBrowserVoice ?
+                    `🔊 ${selectedBrowserVoice.name}` :
+                    '🔊 Navegador (gratis)';
+                statusDiv.style.color = '#888';
+            }
+        }
+
+        // Find Browser Voice by preference
+        function findBrowserVoice(preference) {
+            const voices = speechSynthesis.getVoices();
+
+            // Map preference to search patterns
+            const patterns = {
+                'es-ES-female': [/es-ES.*female/i, /es-ES.*mujer/i, /Spanish.*Spain.*female/i],
+                'es-ES-male': [/es-ES.*male/i, /es-ES.*hombre/i, /Spanish.*Spain.*male/i],
+                'es-MX-female': [/es-MX.*female/i, /es-MX.*mujer/i, /Spanish.*Mexico.*female/i],
+                'es-MX-male': [/es-MX.*male/i, /es-MX.*hombre/i, /Spanish.*Mexico.*male/i],
+                'es-AR-female': [/es-AR.*female/i, /es-AR.*mujer/i, /Spanish.*Argentina.*female/i]
+            };
+
+            const patternsToTry = patterns[preference] || [];
+
+            // Try each pattern
+            for (const pattern of patternsToTry) {
+                const match = voices.find(v => pattern.test(v.name));
+                if (match) return match;
+            }
+
+            // Fallback: any Spanish voice
+            const anySpanish = voices.find(v => v.lang.startsWith('es'));
+            if (anySpanish) return anySpanish;
+
+            // Last resort: first voice
+            return voices[0] || null;
+        }
+
+        // TTS Functions
+        function toggleTTS() {
+            if (isSpeaking) {
+                pauseTTS();
+            } else {
+                playTTS();
+            }
+        }
+
+        function playTTS() {
+            if (ttsMode === 'openai') {
+                playTTS_OpenAI();
+            } else {
+                playTTS_Browser();
+            }
+        }
+
+        // Browser TTS (Native Web Speech API)
+        function playTTS_Browser() {
+            const slideKey = `slide${currentSlide + 1}`;
+            const speechData = speechDataClase2[slideKey];
+
+            if (!speechData) return;
+
+            // Clean script from markers for TTS
+            let cleanScript = speechData.script;
+            cleanScript = cleanScript.replace(/\[[^\]]+\]/g, ''); // Remove all [MARKERS]
+            cleanScript = cleanScript.replace(/\n\n+/g, '. '); // Replace double newlines with period
+            cleanScript = cleanScript.replace(/\s+/g, ' '); // Normalize whitespace
+            cleanScript = cleanScript.trim();
+
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+            }
+
+            currentUtterance = new SpeechSynthesisUtterance(cleanScript);
+            currentUtterance.lang = 'es-ES';
+            currentUtterance.rate = currentSpeed;
+            currentUtterance.pitch = 1.0;
+            currentUtterance.volume = 1.0;
+
+            // Use selected browser voice
+            if (selectedBrowserVoice) {
+                currentUtterance.voice = selectedBrowserVoice;
+                console.log('Using voice:', selectedBrowserVoice.name);
+            }
+
+            currentUtterance.onstart = function() {
+                isSpeaking = true;
+                document.getElementById('ttsPlay').textContent = '⏸';
+                document.getElementById('ttsPlay').classList.add('active');
+                document.getElementById('ttsStop').disabled = false;
+            };
+
+            currentUtterance.onend = function() {
+                isSpeaking = false;
+                document.getElementById('ttsPlay').textContent = '▶';
+                document.getElementById('ttsPlay').classList.remove('active');
+                document.getElementById('ttsStop').disabled = true;
+            };
+
+            currentUtterance.onerror = function(event) {
+                console.error('TTS Error:', event);
+                isSpeaking = false;
+                document.getElementById('ttsPlay').textContent = '▶';
+                document.getElementById('ttsPlay').classList.remove('active');
+            };
+
+            speechSynthesis.speak(currentUtterance);
+        }
+
+        // OpenAI TTS (Professional Quality)
+        async function playTTS_OpenAI() {
+            const slideKey = `slide${currentSlide + 1}`;
+            const speechData = speechDataClase2[slideKey];
+
+            if (!speechData) return;
+
+            // Clean script from markers
+            let cleanScript = speechData.script;
+            cleanScript = cleanScript.replace(/\[[^\]]+\]/g, ''); // Remove all [MARKERS]
+            cleanScript = cleanScript.replace(/\n\n+/g, '. '); // Replace double newlines with period
+            cleanScript = cleanScript.replace(/\s+/g, ' '); // Normalize whitespace
+            cleanScript = cleanScript.trim();
+
+            // Limit to 4096 characters (OpenAI TTS limit)
+            if (cleanScript.length > 4000) {
+                cleanScript = cleanScript.substring(0, 4000) + '...';
+            }
+
+            // Update UI
+            isSpeaking = true;
+            document.getElementById('ttsPlay').textContent = '⏸';
+            document.getElementById('ttsPlay').classList.add('active');
+            document.getElementById('ttsStop').disabled = false;
+            document.getElementById('ttsStatus').textContent = '🎙️ Generando audio profesional...';
+            document.getElementById('ttsStatus').style.color = '#667eea';
+
+            try {
+                const response = await fetch('https://api.openai.com/v1/audio/speech', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'tts-1', // or 'tts-1-hd' for higher quality
+                        input: cleanScript,
+                        voice: selectedOpenAIVoice,
+                        speed: currentSpeed
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`OpenAI API Error: ${response.status} ${response.statusText}`);
+                }
+
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+
+                audio.onplay = function() {
+                    document.getElementById('ttsStatus').textContent = '🎙️ Reproduciendo audio profesional';
+                };
+
+                audio.onended = function() {
+                    isSpeaking = false;
+                    document.getElementById('ttsPlay').textContent = '▶';
+                    document.getElementById('ttsPlay').classList.remove('active');
+                    document.getElementById('ttsStop').disabled = true;
+                    document.getElementById('ttsStatus').textContent = `✨ OpenAI: ${selectedOpenAIVoice}`;
+                    URL.revokeObjectURL(audioUrl);
+                };
+
+                audio.onerror = function(error) {
+                    console.error('Audio playback error:', error);
+                    isSpeaking = false;
+                    document.getElementById('ttsPlay').textContent = '▶';
+                    document.getElementById('ttsPlay').classList.remove('active');
+                    document.getElementById('ttsStatus').textContent = '❌ Error al reproducir audio';
+                    document.getElementById('ttsStatus').style.color = '#ff4444';
+                };
+
+                // Store audio element for stop/pause control
+                window.currentAudio = audio;
+
+                audio.play();
+
+            } catch (error) {
+                console.error('OpenAI TTS Error:', error);
+                isSpeaking = false;
+                document.getElementById('ttsPlay').textContent = '▶';
+                document.getElementById('ttsPlay').classList.remove('active');
+                document.getElementById('ttsStatus').textContent = `❌ Error: ${error.message}`;
+                document.getElementById('ttsStatus').style.color = '#ff4444';
+
+                // Fallback to browser TTS
+                if (confirm('Error con OpenAI TTS. ¿Usar TTS del navegador como alternativa?')) {
+                    // Switch to browser mode
+                    const selector = document.getElementById('voiceSelector');
+                    selector.value = 'browser:es-ES-female';
+                    onVoiceChange();
+                    playTTS_Browser();
+                }
+            }
+        }
+
+        function pauseTTS() {
+            // Stop browser TTS
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+            }
+
+            // Stop OpenAI audio
+            if (window.currentAudio) {
+                window.currentAudio.pause();
+                window.currentAudio.currentTime = 0;
+            }
+
+            isSpeaking = false;
+            document.getElementById('ttsPlay').textContent = '▶';
+            document.getElementById('ttsPlay').classList.remove('active');
+        }
+
+        function stopTTS() {
+            // Stop browser TTS
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+            }
+
+            // Stop OpenAI audio
+            if (window.currentAudio) {
+                window.currentAudio.pause();
+                window.currentAudio.currentTime = 0;
+                window.currentAudio = null;
+            }
+
+            isSpeaking = false;
+            document.getElementById('ttsPlay').textContent = '▶';
+            document.getElementById('ttsPlay').classList.remove('active');
+            document.getElementById('ttsStop').disabled = true;
+        }
+
+        function setSpeed(speed) {
+            currentSpeed = speed;
+
+            // Update active button
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // If currently speaking, restart with new speed
+            if (isSpeaking) {
+                stopTTS();
+                playTTS();
+            }
+        }
+
+        // Toggle Sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('speechSidebar');
+            sidebar.classList.toggle('hidden');
+
+            const btn = document.getElementById('toggleSidebar');
+            btn.textContent = sidebar.classList.contains('hidden') ? '📝 Speech' : '✖ Ocultar';
+        }
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                changeSlide(-1);
+            } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+                e.preventDefault();
+                changeSlide(1);
+            } else if (e.key === 'Home') {
+                showSlide(0);
+            } else if (e.key === 'End') {
+                showSlide(totalSlides - 1);
+            } else if (e.key === 's' || e.key === 'S') {
+                toggleSidebar();
+            } else if (e.key === 't' || e.key === 'T') {
+                toggleTTS();
+            }
+        });
+
+        // Touch Navigation
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) {
+                changeSlide(1);
+            }
+            if (touchEndX > touchStartX + 50) {
+                changeSlide(-1);
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            // Load voices (some browsers need this)
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = function() {
+                    const voices = speechSynthesis.getVoices();
+                    // Initialize default browser voice
+                    if (!selectedBrowserVoice && voices.length > 0) {
+                        selectedBrowserVoice = findBrowserVoice('es-ES-female');
+                    }
+                };
+            }
+
+            // Trigger initial voice selection
+            setTimeout(function() {
+                onVoiceChange();
+            }, 100);
+
+            showSlide(0);
+        });
+    </script>
+</body>
+</html>
