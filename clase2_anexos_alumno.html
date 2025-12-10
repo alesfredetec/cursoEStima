@@ -1,0 +1,1945 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 2 - Anexos PERT/CPM: Ejemplos Gráficos y Cálculos (Versión Alumno)</title>
+    <script src="config.js" onerror="console.warn('config.js not found - OpenAI TTS disabled'); window.CONFIG = {OPENAI_API_KEY: null};"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .background-gradient {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0.1;
+        }
+
+        /* Main Layout: 70/30 Split */
+        .main-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .slide-area {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            transition: width 0.3s ease;
+        }
+
+        .slide-area.with-sidebar {
+            width: 70%;
+        }
+
+        .sidebar {
+            width: 30%;
+            height: 100vh;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(102, 126, 234, 0.3);
+            display: none;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.visible {
+            display: flex;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-duration {
+            font-size: 0.9rem;
+            color: #a0a0a0;
+        }
+
+        .sidebar-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .sidebar-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-body::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-body::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 3px;
+        }
+
+        .speech-content {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #e0e0e0;
+        }
+
+        .speech-content p {
+            margin-bottom: 15px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 60px 80px 60px;
+            height: 100vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .container::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 4px;
+        }
+
+        .slide {
+            min-height: calc(100vh - 180px);
+            display: none;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 20px 0;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        .slide-content {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            color: #667eea;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            padding-bottom: 15px;
+        }
+
+        h3 {
+            font-size: 1.6rem;
+            margin: 25px 0 15px 0;
+            color: #a78bfa;
+        }
+
+        h4 {
+            font-size: 1.3rem;
+            margin: 20px 0 10px 0;
+            color: #c4b5fd;
+        }
+
+        p, li {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .formula {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.3rem;
+            border-radius: 8px;
+        }
+
+        .highlight {
+            color: #fbbf24;
+            font-weight: 600;
+        }
+
+        .example-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 12px;
+        }
+
+        .warning-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid rgba(239, 68, 68, 0.3);
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 12px;
+        }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 1rem;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        th {
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .calculation-step {
+            background: rgba(102, 126, 234, 0.05);
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 3px solid #667eea;
+            border-radius: 6px;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+            background: rgba(20, 20, 20, 0.98);
+            padding: 8px 15px;
+            border-radius: 30px;
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            white-space: nowrap;
+            min-width: 80px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .slide-counter {
+            padding: 8px 16px;
+            background: rgba(102, 126, 234, 0.15);
+            border-radius: 20px;
+            font-weight: 600;
+            color: #667eea;
+            font-size: 0.9rem;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .tts-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: none;
+            gap: 10px;
+            z-index: 100;
+            background: rgba(20, 20, 20, 0.95);
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .tts-controls.visible {
+            display: flex;
+        }
+
+        .tts-btn {
+            padding: 10px 20px;
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+            border: 1px solid #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .tts-btn:hover {
+            background: rgba(102, 126, 234, 0.4);
+        }
+
+        .tts-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        select {
+            padding: 10px 15px;
+            background: rgba(20, 20, 20, 0.9);
+            color: #ffffff;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .monte-carlo-viz {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            margin: 20px 0;
+        }
+
+        .monte-carlo-bar {
+            height: 100px;
+            background: linear-gradient(to top, #667eea, #764ba2);
+            border-radius: 4px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .monte-carlo-bar:hover {
+            transform: scaleY(1.05);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .stat-card {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 10px;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            color: #667eea;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #a0a0a0;
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .grid-3col {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-gradient"></div>
+
+    <div class="main-container">
+        <!-- Main Slide Area (70%) -->
+        <div class="slide-area">
+            <div class="container">
+                <!-- Slide 1: Portada -->
+                <div class="slide active">
+                    <div class="slide-content">
+                        <h1>📊 Anexos PERT/CPM</h1>
+                        <h2 style="text-align: center; border: none; color: #a78bfa;">Ejemplos Gráficos y Cálculos Detallados</h2>
+
+                        <div style="text-align: center; margin: 40px 0;">
+                            <p style="font-size: 1.4rem; color: #c4b5fd;">Complemento a Clase 2: Slides 5, 6 y 7</p>
+                            <p style="font-size: 1.2rem; color: #a0a0a0; margin-top: 20px;">Material de Apoyo Pedagógico</p>
+                        </div>
+
+                        <div class="info-box">
+                            <h3 style="margin-top: 0;">🎯 Contenido de Este Anexo</h3>
+                            <ul style="list-style: none; padding-left: 0;">
+                                <li style="padding: 10px 0; border-bottom: 1px solid rgba(102, 126, 234, 0.2);">
+                                    <span class="highlight">Slide 2-3:</span> Ejemplo con 1 tarea (cálculos PERT básicos paso a paso)
+                                </li>
+                                <li style="padding: 10px 0; border-bottom: 1px solid rgba(102, 126, 234, 0.2);">
+                                    <span class="highlight">Slide 4-5:</span> Ejemplo con 100 tareas (proyecto complejo real)
+                                </li>
+                                <li style="padding: 10px 0; border-bottom: 1px solid rgba(102, 126, 234, 0.2);">
+                                    <span class="highlight">Slide 6:</span> Gráficos de Desviación Estándar (σ)
+                                </li>
+                                <li style="padding: 10px 0; border-bottom: 1px solid rgba(102, 126, 234, 0.2);">
+                                    <span class="highlight">Slide 7:</span> Gráficos de Varianza (σ²)
+                                </li>
+                                <li style="padding: 10px 0;">
+                                    <span class="highlight">Slide 8-9:</span> Simulación de Monte Carlo (10,000 iteraciones)
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="warning-box" style="margin-top: 30px;">
+                            <h4 style="margin-top: 0;">⚠️ Prerequisitos</h4>
+                            <p style="margin-bottom: 0;">Este material asume que ya viste los <strong>Slides 3-7 de Clase 2</strong>: PERT, CPM, y Combinando PERT/CPM.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 2: Ejemplo 1 Tarea - Parte 1 -->
+                <div class="slide">
+                    <div class="slide-content">
+                        <h2>📐 Ejemplo 1: Una Tarea Simple</h2>
+                        <h3>Migración de Base de Datos</h3>
+
+                        <div class="example-box">
+                            <h4>Contexto</h4>
+                            <p>Necesitamos migrar una base de datos de PostgreSQL 12 a PostgreSQL 15 en producción.</p>
+
+                            <h4 style="margin-top: 25px;">Estimaciones del Equipo</h4>
+                            <table>
+                                <tr>
+                                    <th>Estimación</th>
+                                    <th>Valor</th>
+                                    <th>Justificación</th>
+                                </tr>
+                                <tr>
+                                    <td><strong>Optimista (O)</strong></td>
+                                    <td class="highlight">5 días</td>
+                                    <td>Todo sale perfecto, scripts funcionan, sin rollbacks</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Más Probable (M)</strong></td>
+                                    <td class="highlight">10 días</td>
+                                    <td>Algunos ajustes de queries, 1-2 rollbacks menores</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Pesimista (P)</strong></td>
+                                    <td class="highlight">25 días</td>
+                                    <td>Incompatibilidades mayores, problemas de rendimiento, múltiples rollbacks</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="formula">
+                            <strong>Fórmula PERT:</strong><br>
+                            μ (Duración Esperada) = (O + 4M + P) / 6
+                        </div>
+
+                        <div class="calculation-step">
+                            <h4>Paso 1: Sustituir valores</h4>
+                            <p style="font-family: 'Courier New', monospace; font-size: 1.2rem;">
+                                μ = (5 + 4×10 + 25) / 6
+                            </p>
+                        </div>
+
+                        <div class="calculation-step">
+                            <h4>Paso 2: Multiplicar 4M</h4>
+                            <p style="font-family: 'Courier New', monospace; font-size: 1.2rem;">
+                                μ = (5 + 40 + 25) / 6
+                            </p>
+                        </div>
+
+                        <div class="calculation-step">
+                            <h4>Paso 3: Sumar numerador</h4>
+                            <p style="font-family: 'Courier New', monospace; font-size: 1.2rem;">
+                                μ = 70 / 6
+                            </p>
+                        </div>
+
+                        <div class="calculation-step">
+                            <h4>Paso 4: Dividir</h4>
+                            <p style="font-family: 'Courier New', monospace; font-size: 1.2rem;">
+                                μ = <span class="highlight">11.67 días ≈ 12 días</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 3: Ejemplo 1 Tarea - Parte 2 (Desviación Estándar) -->
+                <div class="slide">
+                    <div class="slide-content">
+                        <h2>📐 Ejemplo 1: Desviación Estándar (σ)</h2>
+
+                        <div class="formula">
+                            <strong>Fórmula de Desviación Estándar:</strong><br>
+                            σ = (P - O) / 6
+                        </div>
+
+                        <div class="calculation-step">
+                            <h4>Paso 1: Sustituir valores</h4>
+                            <p style="font-family: 'Courier New', monospace; font-size: 1.2rem;">
+                                σ = (25 - 5) / 6
+                            </p>
+                        </div>
+
+                        <div class="calculation-step">
+                            <h4>Paso 2: Restar</h4>
+                            <p style="font-family: 'Courier New', monospace; font-size: 1.2rem;">
+                                σ = 20 / 6
+                            </p>
+                        </div>
+
+                        <div class="calculation-step">
+                            <h4>Paso 3: Dividir</h4>
+                            <p style="font-family: 'Courier New', monospace; font-size: 1.2rem;">
+                                σ = <span class="highlight">3.33 días</span>
+                            </p>
+                        </div>
+
+                        <div class="info-box" style="margin-top: 30px;">
+                            <h3 style="margin-top: 0;">🎯 Resultado Final</h3>
+                            <div class="grid-2col">
+                                <div class="stat-card">
+                                    <div class="stat-label">Duración Esperada</div>
+                                    <div class="stat-value">12 días</div>
+                                    <div class="stat-label">(μ)</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label">Desviación Estándar</div>
+                                    <div class="stat-value">±3.33 días</div>
+                                    <div class="stat-label">(σ)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="example-box">
+                            <h4>Interpretación Práctica</h4>
+                            <p><strong>Rango de confianza 68%</strong> (±1σ):</p>
+                            <p style="font-size: 1.3rem; text-align: center; margin: 15px 0;">
+                                12 - 3.33 = <span class="highlight">8.67 días</span> a 12 + 3.33 = <span class="highlight">15.33 días</span>
+                            </p>
+
+                            <p><strong>Rango de confianza 95%</strong> (±2σ):</p>
+                            <p style="font-size: 1.3rem; text-align: center; margin: 15px 0;">
+                                12 - 6.66 = <span class="highlight">5.34 días</span> a 12 + 6.66 = <span class="highlight">18.66 días</span>
+                            </p>
+
+                            <p><strong>Rango de confianza 99.7%</strong> (±3σ):</p>
+                            <p style="font-size: 1.3rem; text-align: center; margin: 15px 0;">
+                                12 - 9.99 = <span class="highlight">2 días</span> a 12 + 9.99 = <span class="highlight">22 días</span>
+                            </p>
+                        </div>
+
+                        <div class="warning-box">
+                            <h4>⚠️ Insight Clave</h4>
+                            <p>Aunque el valor esperado es <strong>12 días</strong>, hay un <strong>32% de probabilidad</strong> de que tome más de 15 días.</p>
+                            <p style="margin-bottom: 0; margin-top: 15px;">Por eso PERT siempre reporta: <strong>μ ± σ</strong> → <strong>12 ± 3.33 días</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 4: Ejemplo 100 Tareas - Parte 1 -->
+                <div class="slide">
+                    <div class="slide-content">
+                        <h2>🏗️ Ejemplo 2: Proyecto con 100 Tareas</h2>
+                        <h3>Sistema E-Commerce Completo</h3>
+
+                        <div class="info-box">
+                            <h4>Contexto del Proyecto</h4>
+                            <p>Desarrollo de plataforma e-commerce desde cero:</p>
+                            <ul>
+                                <li>Frontend (React): 25 tareas</li>
+                                <li>Backend (Node.js): 30 tareas</li>
+                                <li>Base de datos y APIs: 20 tareas</li>
+                                <li>Testing y QA: 15 tareas</li>
+                                <li>DevOps y Deploy: 10 tareas</li>
+                            </ul>
+                        </div>
+
+                        <div class="example-box">
+                            <h4>Ruta Crítica Identificada (CPM)</h4>
+                            <p>El análisis CPM identificó 40 tareas en la ruta crítica:</p>
+                            <ul>
+                                <li>Setup inicial → Arquitectura → Auth → Catálogo → Carrito → Checkout → Payment → Testing E2E → Deploy</li>
+                            </ul>
+                        </div>
+
+                        <h3 style="margin-top: 30px;">Cálculos PERT Agregados</h3>
+
+                        <table>
+                            <tr>
+                                <th>Tarea</th>
+                                <th>O (días)</th>
+                                <th>M (días)</th>
+                                <th>P (días)</th>
+                                <th>μ (días)</th>
+                                <th>σ (días)</th>
+                            </tr>
+                            <tr>
+                                <td>1. Setup & Arquitectura</td>
+                                <td>3</td>
+                                <td>5</td>
+                                <td>10</td>
+                                <td>5.5</td>
+                                <td>1.17</td>
+                            </tr>
+                            <tr>
+                                <td>2. Sistema de Auth</td>
+                                <td>5</td>
+                                <td>10</td>
+                                <td>20</td>
+                                <td>10.83</td>
+                                <td>2.5</td>
+                            </tr>
+                            <tr>
+                                <td>3. Catálogo de Productos</td>
+                                <td>8</td>
+                                <td>15</td>
+                                <td>30</td>
+                                <td>16.33</td>
+                                <td>3.67</td>
+                            </tr>
+                            <tr>
+                                <td>4. Carrito de Compras</td>
+                                <td>6</td>
+                                <td>12</td>
+                                <td>25</td>
+                                <td>13.17</td>
+                                <td>3.17</td>
+                            </tr>
+                            <tr>
+                                <td>5. Proceso de Checkout</td>
+                                <td>10</td>
+                                <td>20</td>
+                                <td>40</td>
+                                <td>21.67</td>
+                                <td>5.0</td>
+                            </tr>
+                            <tr>
+                                <td>... (35 tareas más)</td>
+                                <td colspan="5" style="text-align: center; color: #a0a0a0;">Ver tabla completa en documentación</td>
+                            </tr>
+                            <tr style="background: rgba(102, 126, 234, 0.2); font-weight: bold;">
+                                <td><strong>TOTAL (Ruta Crítica)</strong></td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td class="highlight">180 días</td>
+                                <td class="highlight">±15 días</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Slide 5: Ejemplo 100 Tareas - Parte 2 (Resultados) -->
+                <div class="slide">
+                    <div class="slide-content">
+                        <h2>🏗️ Ejemplo 2: Resultados del Proyecto</h2>
+
+                        <div class="grid-3col">
+                            <div class="stat-card">
+                                <div class="stat-label">Total de Tareas</div>
+                                <div class="stat-value">100</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Ruta Crítica</div>
+                                <div class="stat-value">40</div>
+                                <div class="stat-label">tareas</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Holgura Disponible</div>
+                                <div class="stat-value">60</div>
+                                <div class="stat-label">tareas</div>
+                            </div>
+                        </div>
+
+                        <div class="info-box">
+                            <h3 style="margin-top: 0;">📊 Resultado PERT Final</h3>
+                            <div class="grid-2col" style="margin-top: 20px;">
+                                <div class="stat-card">
+                                    <div class="stat-label">Duración Esperada</div>
+                                    <div class="stat-value">180 días</div>
+                                    <div class="stat-label">(μ total = Σμᵢ en ruta crítica)</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label">Desviación Estándar</div>
+                                    <div class="stat-value">±15 días</div>
+                                    <div class="stat-label">(σ total = √(Σσᵢ²))</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="calculation-step">
+                            <h4>Cálculo de σ Total (Varianza Agregada)</h4>
+                            <p style="font-family: 'Courier New', monospace;">
+                                σ²_total = σ₁² + σ₂² + σ₃² + ... + σ₄₀²<br>
+                                σ²_total = 1.17² + 2.5² + 3.67² + ... (40 términos)<br>
+                                σ²_total = 225 días²<br>
+                                <span class="highlight">σ_total = √225 = 15 días</span>
+                            </p>
+                        </div>
+
+                        <div class="example-box">
+                            <h4>Rangos de Confianza</h4>
+                            <table>
+                                <tr>
+                                    <th>Nivel de Confianza</th>
+                                    <th>Rango (días)</th>
+                                    <th>Interpretación</th>
+                                </tr>
+                                <tr>
+                                    <td><strong>68%</strong> (±1σ)</td>
+                                    <td class="highlight">165 - 195 días</td>
+                                    <td>Rango probable normal</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>95%</strong> (±2σ)</td>
+                                    <td class="highlight">150 - 210 días</td>
+                                    <td>Rango para planning conservador</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>99.7%</strong> (±3σ)</td>
+                                    <td class="highlight">135 - 225 días</td>
+                                    <td>Rango extremos incluidos</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="warning-box">
+                            <h4>🎯 Decisión de Management</h4>
+                            <p><strong>Opción 1 (Agresivo):</strong> Comprometer 180 días → 50% probabilidad de éxito</p>
+                            <p><strong>Opción 2 (Balanceado):</strong> Comprometer 195 días (μ + 1σ) → 84% probabilidad de éxito</p>
+                            <p style="margin-bottom: 0;"><strong>Opción 3 (Conservador):</strong> Comprometer 210 días (μ + 2σ) → 97.5% probabilidad de éxito</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 6: Gráficos de Desviación Estándar -->
+                <div class="slide">
+                    <div class="slide-content">
+                        <h2>📈 Visualización: Desviación Estándar (σ)</h2>
+
+                        <div class="chart-container">
+                            <h3>Distribución Normal de Duración</h3>
+                            <canvas id="sdChart" width="800" height="400"></canvas>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>Interpretación de σ</h4>
+                            <p><strong>σ pequeño (σ/μ < 0.1):</strong> Alta certeza, estimaciones precisas</p>
+                            <p><strong>σ medio (0.1 ≤ σ/μ ≤ 0.25):</strong> Incertidumbre normal</p>
+                            <p style="margin-bottom: 0;"><strong>σ grande (σ/μ > 0.25):</strong> Alta incertidumbre, considerar dividir tarea</p>
+                        </div>
+
+                        <div class="grid-2col">
+                            <div class="example-box">
+                                <h4>Ejemplo: σ Pequeño</h4>
+                                <p><strong>Tarea:</strong> Cambiar texto en UI</p>
+                                <p>O = 0.5h, M = 1h, P = 2h</p>
+                                <p>μ = 1.08h, σ = 0.25h</p>
+                                <p class="highlight">σ/μ = 0.23 (23% variabilidad)</p>
+                            </div>
+                            <div class="warning-box">
+                                <h4>Ejemplo: σ Grande</h4>
+                                <p><strong>Tarea:</strong> Integrar sistema legacy</p>
+                                <p>O = 5 días, M = 20 días, P = 60 días</p>
+                                <p>μ = 22.5 días, σ = 9.17 días</p>
+                                <p class="highlight">σ/μ = 0.41 (41% variabilidad)</p>
+                                <p style="margin-bottom: 0; margin-top: 10px; color: #ef4444;"><strong>⚠️ Dividir en subtareas</strong></p>
+                            </div>
+                        </div>
+
+                        <div class="calculation-step" style="margin-top: 30px;">
+                            <h4>Coeficiente de Variación (CV)</h4>
+                            <p style="font-family: 'Courier New', monospace; font-size: 1.2rem;">
+                                CV = σ / μ × 100%<br><br>
+                                Proyecto E-Commerce: CV = 15 / 180 × 100% = <span class="highlight">8.3%</span><br>
+                                <span style="color: #10b981;">✓ Variabilidad aceptable para proyecto de esta escala</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 7: Gráficos de Varianza -->
+                <div class="slide">
+                    <div class="slide-content">
+                        <h2>📊 Cómo se Acumula la Varianza</h2>
+
+                        <div class="info-box">
+                            <h4 style="margin-top: 0;">🎯 La Regla Clave</h4>
+                            <p style="font-size: 1.3rem; text-align: center; margin: 20px 0;">
+                                <strong>La varianza (σ²) SÍ se suma.</strong><br>
+                                <strong>La desviación (σ) NO se suma.</strong>
+                            </p>
+                        </div>
+
+                        <h3 style="margin-top: 30px;">Ejemplo Visual: 3 Tareas en Secuencia</h3>
+
+                        <div class="example-box">
+                            <h4>Datos de Entrada</h4>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0;">
+                                <div style="background: rgba(102, 126, 234, 0.2); padding: 20px; border-radius: 10px; text-align: center;">
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: #667eea;">Tarea A</div>
+                                    <div style="font-size: 2rem; margin: 15px 0;">σ = 2 días</div>
+                                    <div style="font-size: 1.3rem; color: #fbbf24;">σ² = 4 días²</div>
+                                </div>
+                                <div style="background: rgba(118, 75, 162, 0.2); padding: 20px; border-radius: 10px; text-align: center;">
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: #764ba2;">Tarea B</div>
+                                    <div style="font-size: 2rem; margin: 15px 0;">σ = 3 días</div>
+                                    <div style="font-size: 1.3rem; color: #fbbf24;">σ² = 9 días²</div>
+                                </div>
+                                <div style="background: rgba(167, 139, 250, 0.2); padding: 20px; border-radius: 10px; text-align: center;">
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: #a78bfa;">Tarea C</div>
+                                    <div style="font-size: 2rem; margin: 15px 0;">σ = 4 días</div>
+                                    <div style="font-size: 1.3rem; color: #fbbf24;">σ² = 16 días²</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid-2col" style="margin-top: 30px;">
+                            <div class="warning-box">
+                                <h4>❌ INCORRECTO</h4>
+                                <p><strong>Si sumamos las desviaciones (σ):</strong></p>
+                                <div style="font-family: 'Courier New', monospace; font-size: 1.3rem; text-align: center; margin: 20px 0; padding: 15px; background: rgba(239, 68, 68, 0.2); border-radius: 8px;">
+                                    σ_total = 2 + 3 + 4<br>
+                                    = <span style="color: #ef4444; font-weight: bold;">9 días</span>
+                                </div>
+                                <p style="margin-bottom: 0; color: #ef4444;"><strong>¡ESTO ES MATEMÁTICAMENTE INCORRECTO!</strong></p>
+                                <p style="margin-top: 10px; margin-bottom: 0;">Las desviaciones NO se suman directamente cuando las tareas son independientes.</p>
+                            </div>
+
+                            <div style="background: rgba(16, 185, 129, 0.1); border: 2px solid rgba(16, 185, 129, 0.3); padding: 25px; border-radius: 12px;">
+                                <h4 style="color: #10b981;">✅ CORRECTO</h4>
+                                <p><strong>Paso 1: Sumamos las varianzas (σ²):</strong></p>
+                                <div style="font-family: 'Courier New', monospace; font-size: 1.3rem; text-align: center; margin: 15px 0; padding: 15px; background: rgba(16, 185, 129, 0.2); border-radius: 8px;">
+                                    σ²_total = 4 + 9 + 16<br>
+                                    = <span style="color: #10b981; font-weight: bold;">29 días²</span>
+                                </div>
+                                <p><strong>Paso 2: Sacamos raíz cuadrada:</strong></p>
+                                <div style="font-family: 'Courier New', monospace; font-size: 1.3rem; text-align: center; margin: 15px 0; padding: 15px; background: rgba(16, 185, 129, 0.2); border-radius: 8px;">
+                                    σ_total = √29<br>
+                                    = <span style="color: #10b981; font-weight: bold;">5.39 días</span>
+                                </div>
+                                <p style="margin-bottom: 0; color: #10b981;"><strong>¡CORRECTO!</strong></p>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(59, 130, 246, 0.1); border: 2px solid rgba(59, 130, 246, 0.3); padding: 25px; margin: 30px 0; border-radius: 12px;">
+                            <h4 style="color: #3b82f6;">💡 ¿Por qué 5.39 y no 9?</h4>
+                            <p style="font-size: 1.15rem; line-height: 1.8;">
+                                <strong>Intuición:</strong> Cuando las tareas son independientes, NO TODAS se desvían en la misma dirección al mismo tiempo.
+                            </p>
+                            <p style="font-size: 1.15rem; line-height: 1.8;">
+                                Si Tarea A se demora +2 días, Tarea B puede adelantarse -1 día, y Tarea C puede demorar +3 días.
+                            </p>
+                            <p style="font-size: 1.15rem; line-height: 1.8; margin-bottom: 0;">
+                                Las desviaciones se <strong>compensan parcialmente</strong>. Por eso σ_total (5.39) es <strong>menor</strong> que la suma directa (9).
+                            </p>
+                        </div>
+
+                        <div class="chart-container" style="height: 520px;">
+                            <h3>Visualización: Raíz de Varianza Sumada vs Desviación Sumada</h3>
+                            <canvas id="varianceChart"></canvas>
+                            <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                                <div style="padding: 15px; background: rgba(34, 197, 94, 0.15); border: 2px solid #22c55e; border-radius: 10px;">
+                                    <p style="text-align: center; color: #22c55e; margin: 0; font-size: 0.9rem; font-weight: bold;">✅ MÉTODO CORRECTO</p>
+                                    <p style="text-align: center; color: #ffffff; margin: 10px 0 5px 0; font-size: 1.3rem; font-weight: bold;">5.39 días</p>
+                                    <p style="text-align: center; color: #a0a0a0; margin: 0; font-size: 0.85rem;">√(4+9+16) = √29</p>
+                                </div>
+                                <div style="padding: 15px; background: rgba(239, 68, 68, 0.15); border: 2px solid #ef4444; border-radius: 10px;">
+                                    <p style="text-align: center; color: #ef4444; margin: 0; font-size: 0.9rem; font-weight: bold;">❌ MÉTODO INCORRECTO</p>
+                                    <p style="text-align: center; color: #ffffff; margin: 10px 0 5px 0; font-size: 1.3rem; font-weight: bold;">9 días</p>
+                                    <p style="text-align: center; color: #a0a0a0; margin: 0; font-size: 0.85rem;">2 + 3 + 4 (ERROR)</p>
+                                </div>
+                                <div style="padding: 15px; background: rgba(251, 191, 36, 0.15); border: 2px solid #fbbf24; border-radius: 10px;">
+                                    <p style="text-align: center; color: #fbbf24; margin: 0; font-size: 0.9rem; font-weight: bold;">💡 IMPACTO</p>
+                                    <p style="text-align: center; color: #ffffff; margin: 10px 0 5px 0; font-size: 1.3rem; font-weight: bold;">+67%</p>
+                                    <p style="text-align: center; color: #a0a0a0; margin: 0; font-size: 0.85rem;">Sobreestimación</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="formula" style="margin-top: 30px;">
+                            <strong>Fórmula General:</strong><br>
+                            σ_total = √(σ₁² + σ₂² + σ₃² + ... + σₙ²)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 8: Monte Carlo - Parte 1 -->
+                <div class="slide">
+                    <div class="slide-content">
+                        <h2>🎲 Simulación de Monte Carlo</h2>
+                        <h3>10,000 Iteraciones del Proyecto E-Commerce</h3>
+
+                        <div class="info-box">
+                            <h4>¿Qué es Monte Carlo?</h4>
+                            <p>En lugar de calcular probabilidades matemáticamente, <strong>simulamos el proyecto miles de veces</strong> con valores aleatorios dentro de los rangos O-M-P de cada tarea.</p>
+                            <p style="margin-bottom: 0;">Cada iteración genera una duración total diferente. El histograma de resultados nos muestra la <strong>distribución real de probabilidades</strong>.</p>
+                        </div>
+
+                        <div class="example-box">
+                            <h4>Algoritmo de Simulación</h4>
+                            <div class="calculation-step">
+                                <strong>Para i = 1 hasta 10,000:</strong><br>
+                                1. Para cada tarea en ruta crítica:<br>
+                                &nbsp;&nbsp;&nbsp;- Generar duración aleatoria con distribución Beta(O, M, P)<br>
+                                2. Sumar todas las duraciones → duración_total[i]<br>
+                                3. Guardar resultado<br><br>
+                                <strong>Resultado:</strong> Array con 10,000 duraciones posibles del proyecto
+                            </div>
+                        </div>
+
+                        <div class="chart-container" style="position: relative; height: 450px; margin-bottom: 20px;">
+                            <h3>Histograma de Resultados con Percentiles Calculados</h3>
+                            <canvas id="monteCarloChart"></canvas>
+                        </div>
+
+                        <!-- Color Legend -->
+                        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 15px; font-size: 0.85rem;">
+                            <div style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; padding: 8px; border-radius: 8px; text-align: center;">
+                                <div style="color: #ef4444; font-weight: bold;">🔴 < 165 días</div>
+                                <div style="color: #ffffff;">Riesgo Alto</div>
+                            </div>
+                            <div style="background: rgba(251, 191, 36, 0.2); border: 1px solid #fbbf24; padding: 8px; border-radius: 8px; text-align: center;">
+                                <div style="color: #fbbf24; font-weight: bold;">🟡 165-180 días</div>
+                                <div style="color: #ffffff;">Medio</div>
+                            </div>
+                            <div style="background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; padding: 8px; border-radius: 8px; text-align: center;">
+                                <div style="color: #22c55e; font-weight: bold;">🟢 180-195 días</div>
+                                <div style="color: #ffffff;">Óptimo ✅</div>
+                            </div>
+                            <div style="background: rgba(99, 102, 241, 0.2); border: 1px solid #6366f1; padding: 8px; border-radius: 8px; text-align: center;">
+                                <div style="color: #6366f1; font-weight: bold;">🔵 195-210 días</div>
+                                <div style="color: #ffffff;">Conservador</div>
+                            </div>
+                            <div style="background: rgba(147, 51, 234, 0.2); border: 1px solid #9333ea; padding: 8px; border-radius: 8px; text-align: center;">
+                                <div style="color: #9333ea; font-weight: bold;">🟣 > 210 días</div>
+                                <div style="color: #ffffff;">Muy Conservador</div>
+                            </div>
+                        </div>
+
+                        <!-- Key Percentiles -->
+                        <div style="background: rgba(34, 197, 94, 0.1); border: 2px solid #22c55e; border-radius: 12px; padding: 20px; margin-top: 20px;">
+                            <h4 style="margin-top: 0; color: #22c55e;">📊 Percentiles Clave Calculados (P)</h4>
+                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                                <div style="text-align: center;">
+                                    <div style="font-size: 0.9rem; color: #ef4444;">P16 (μ - 1σ)</div>
+                                    <div style="font-size: 1.8rem; font-weight: bold; color: #ef4444;">165 días</div>
+                                    <div style="font-size: 0.85rem; color: #cccccc;">16% probabilidad</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 0.9rem; color: #fbbf24;">P50 (Mediana)</div>
+                                    <div style="font-size: 1.8rem; font-weight: bold; color: #fbbf24;">180 días</div>
+                                    <div style="font-size: 0.85rem; color: #cccccc;">50% probabilidad</div>
+                                </div>
+                                <div style="text-align: center; background: rgba(34, 197, 94, 0.15); border-radius: 8px; padding: 10px;">
+                                    <div style="font-size: 0.9rem; color: #22c55e;">P84 (μ + 1σ) ✅</div>
+                                    <div style="font-size: 2rem; font-weight: bold; color: #22c55e;">195 días</div>
+                                    <div style="font-size: 0.9rem; color: #22c55e; font-weight: bold;">84% probabilidad</div>
+                                    <div style="font-size: 0.75rem; color: #fbbf24;">RECOMENDADO</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 0.9rem; color: #6366f1;">P97.5 (μ + 2σ)</div>
+                                    <div style="font-size: 1.8rem; font-weight: bold; color: #6366f1;">210 días</div>
+                                    <div style="font-size: 0.85rem; color: #cccccc;">97.5% probabilidad</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 9: Monte Carlo - Parte 2 (Resultados y Decisiones) -->
+                <div class="slide">
+                    <div class="slide-content">
+                        <h2>🎲 Monte Carlo: Resultados y Decisiones</h2>
+
+                        <div class="info-box">
+                            <h3 style="margin-top: 0;">📊 Estadísticas de la Simulación</h3>
+                            <table>
+                                <tr>
+                                    <th>Métrica</th>
+                                    <th>Valor</th>
+                                    <th>Interpretación</th>
+                                </tr>
+                                <tr>
+                                    <td><strong>Media (μ)</strong></td>
+                                    <td class="highlight">180.3 días</td>
+                                    <td>Muy cercano al cálculo PERT (180)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Mediana</strong></td>
+                                    <td class="highlight">179.8 días</td>
+                                    <td>50% termina antes de esto</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Desv. Est. (σ)</strong></td>
+                                    <td class="highlight">14.8 días</td>
+                                    <td>Muy cercano al cálculo PERT (15)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Mínimo</strong></td>
+                                    <td>142 días</td>
+                                    <td>Caso extremadamente optimista</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Máximo</strong></td>
+                                    <td>238 días</td>
+                                    <td>Caso extremadamente pesimista</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="example-box">
+                            <h4>Tabla de Decisión: ¿Qué Deadline Comprometer?</h4>
+                            <table>
+                                <tr>
+                                    <th>Deadline</th>
+                                    <th>Probabilidad de Éxito</th>
+                                    <th>Riesgo</th>
+                                    <th>Recomendación</th>
+                                </tr>
+                                <tr>
+                                    <td><strong>165 días</strong></td>
+                                    <td class="highlight" style="color: #ef4444;">16%</td>
+                                    <td style="color: #ef4444;">Muy Alto</td>
+                                    <td>❌ No recomendado</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>180 días</strong> (μ)</td>
+                                    <td class="highlight" style="color: #f59e0b;">50%</td>
+                                    <td style="color: #f59e0b;">Alto</td>
+                                    <td>⚠️ Solo si hay flexibilidad</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>195 días</strong> (μ+1σ)</td>
+                                    <td class="highlight" style="color: #10b981;">84%</td>
+                                    <td style="color: #10b981;">Bajo</td>
+                                    <td>✅ Recomendado (balanceado)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>210 días</strong> (μ+2σ)</td>
+                                    <td class="highlight" style="color: #10b981;">97.5%</td>
+                                    <td style="color: #10b981;">Muy Bajo</td>
+                                    <td>✅ Conservador (proyectos críticos)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>225 días</strong> (μ+3σ)</td>
+                                    <td class="highlight" style="color: #10b981;">99.7%</td>
+                                    <td style="color: #10b981;">Mínimo</td>
+                                    <td>⚠️ Puede ser excesivo</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="warning-box">
+                            <h4>🎯 Decisión Final Recomendada</h4>
+                            <p><strong>Comprometer 195 días (μ + 1σ)</strong></p>
+                            <ul>
+                                <li><strong>84% probabilidad de éxito</strong> (8 de cada 10 proyectos similares terminan a tiempo)</li>
+                                <li>Balance entre competitividad y realismo</li>
+                                <li>Buffer implícito de 15 días sobre la media</li>
+                                <li>Permite absorber algunos retrasos sin crisis</li>
+                            </ul>
+                            <p style="margin-bottom: 0; margin-top: 20px; font-size: 1.2rem; color: #fbbf24;">
+                                <strong>📌 Mensaje al stakeholder:</strong> "El proyecto tomará aproximadamente <span class="highlight">6.5 meses (195 días)</span> con alta confianza de cumplimiento."
+                            </p>
+                        </div>
+
+                        <div class="info-box">
+                            <h4>✅ Validación: Monte Carlo vs PERT</h4>
+                            <p style="margin-bottom: 0;">
+                                Los resultados de Monte Carlo <strong>confirman</strong> los cálculos PERT:<br>
+                                <strong>μ_Monte Carlo = 180.3 días</strong> vs <strong>μ_PERT = 180 días</strong> (0.17% diferencia)<br>
+                                <strong>σ_Monte Carlo = 14.8 días</strong> vs <strong>σ_PERT = 15 días</strong> (1.3% diferencia)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Navigation Controls -->
+            <div class="controls">
+                <button class="btn" id="prevBtn" onclick="changeSlide(-1)">← Anterior</button>
+                <span class="slide-counter" id="slideCounter">1 / 9</span>
+                <button class="btn" id="nextBtn" onclick="changeSlide(1)">Siguiente →</button>
+            </div>
+        </div>
+
+        <!-- Sidebar (30%) -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title" id="sidebarTitle">Anexos PERT/CPM</div>
+                <div class="sidebar-duration" id="sidebarDuration">Material Complementario</div>
+            </div>
+            <div class="sidebar-body">
+                <div class="speech-content" id="speechContent">
+                    <p>Este es el material complementario para los slides 5, 6 y 7 de Clase 2.</p>
+                    <p>Navegue con las flechas o los botones para explorar ejemplos detallados de PERT, CPM, y Monte Carlo.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TTS Controls -->
+    <div class="tts-controls">
+        <button class="tts-btn" id="playBtn" onclick="toggleTTS()">▶ Play</button>
+        <button class="tts-btn" id="pauseBtn" onclick="pauseTTS()" style="display: none;">⏸ Pause</button>
+        <button class="tts-btn" id="stopBtn" onclick="stopTTS()">⏹ Stop</button>
+        <select id="speedControl" onchange="setSpeed(this.value)">
+            <option value="0.8">0.8x</option>
+            <option value="1.0">1.0x</option>
+            <option value="1.2" selected>1.2x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2.0">2.0x</option>
+        </select>
+        <select id="voiceSelect" onchange="onVoiceChange()">
+            <option value="browser:es-ES-female">🌐 Español (ES) Mujer</option>
+            <option value="browser:es-MX-female">🌐 Español (MX) Mujer</option>
+            <option value="browser:es-AR-female">🌐 Español (AR) Mujer</option>
+        </select>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <script>
+        // Speech Data
+        const speechDataAnexos = {
+            "slide1": {
+                "title": "Portada - Anexos PERT/CPM",
+                "duration": "2 min",
+                "script": "Bienvenidos a los Anexos PERT/CPM.\n\nEste material complementa los slides 5, 6 y 7 de Clase 2.\n\nVamos a ver ejemplos CONCRETOS de cálculos PERT con gráficos y simulaciones.\n\nPrimero: un ejemplo simple con UNA tarea.\n\nLuego: un proyecto real con 100 tareas.\n\nFinalmente: visualizaciones de desviación estándar, varianza, y Monte Carlo.\n\nEste material es para reforzar conceptos, no para la clase principal.\n\nComencemos."
+            },
+            "slide2": {
+                "title": "Ejemplo 1 Tarea - Cálculo μ",
+                "duration": "5 min",
+                "script": "Ejemplo 1: Una tarea simple.\n\nMigración de base de datos PostgreSQL 12 a 15.\n\nEstimaciones del equipo:\n\nOptimista: 5 días (todo perfecto).\nMás Probable: 10 días (algunos ajustes).\nPesimista: 25 días (problemas mayores).\n\n[FÓRMULA PERT]\n\nμ = (O + 4M + P) / 6\n\nSustituimos:\nμ = (5 + 4×10 + 25) / 6\nμ = (5 + 40 + 25) / 6\nμ = 70 / 6\nμ = 11.67 días\n\nRedondeamos: 12 días.\n\n[PAUSA]\n\nEsto es la DURACIÓN ESPERADA.\n\nNo es O, no es P, no es M.\n\nEs un promedio PONDERADO que le da más peso a M (4 veces).\n\nPero falta algo: ¿cuánta incertidumbre tenemos?"
+            },
+            "slide3": {
+                "title": "Ejemplo 1 Tarea - Cálculo σ",
+                "duration": "6 min",
+                "script": "Ahora calculamos la Desviación Estándar.\n\n[FÓRMULA]\n\nσ = (P - O) / 6\n\nSustituimos:\nσ = (25 - 5) / 6\nσ = 20 / 6\nσ = 3.33 días\n\n[INTERPRETACIÓN]\n\nResultado final: 12 ± 3.33 días.\n\n¿Qué significa esto?\n\n[RANGOS]\n\nRango 68% de confianza (±1σ):\n8.67 a 15.33 días.\n\nRango 95% de confianza (±2σ):\n5.34 a 18.66 días.\n\nRango 99.7% de confianza (±3σ):\n2 a 22 días.\n\n[INSIGHT]\n\nAunque la media es 12 días, hay 32% de probabilidad de que tome MÁS de 15 días.\n\nPor eso PERT siempre reporta μ ± σ.\n\nNunca solo μ.\n\nLa incertidumbre ES parte del resultado."
+            },
+            "slide4": {
+                "title": "Ejemplo 100 Tareas - Contexto",
+                "duration": "5 min",
+                "script": "Ejemplo 2: Proyecto con 100 tareas.\n\nSistema e-commerce completo desde cero.\n\n25 tareas de Frontend React.\n30 tareas de Backend Node.js.\n20 tareas de Base de datos y APIs.\n15 tareas de Testing y QA.\n10 tareas de DevOps y Deploy.\n\n[CPM PRIMERO]\n\nUsamos CPM para identificar la ruta crítica.\n\nResultado: 40 tareas están en la ruta crítica.\n\nLas otras 60 tienen holgura.\n\n[PERT DESPUÉS]\n\nAhora aplicamos PERT a cada una de las 40 tareas críticas.\n\nCalculamos μ y σ para cada una.\n\nVemos la tabla con 5 ejemplos representativos.\n\nLa tabla completa tiene las 40 tareas con sus valores O-M-P-μ-σ."
+            },
+            "slide5": {
+                "title": "Ejemplo 100 Tareas - Resultados",
+                "duration": "7 min",
+                "script": "Resultados del proyecto de 100 tareas.\n\n[MÉTRICAS]\n\nTotal de tareas: 100.\nRuta crítica: 40 tareas.\nHolgura disponible: 60 tareas.\n\n[CÁLCULO FINAL]\n\nμ_total = Suma de todas las μ en ruta crítica = 180 días.\n\nσ_total = Raíz cuadrada de la suma de varianzas.\n\nσ² = 1.17² + 2.5² + 3.67² + ... (40 términos)\nσ² = 225 días²\nσ = √225 = 15 días\n\n[RESULTADO]\n\nProyecto: 180 ± 15 días.\n\n[RANGOS]\n\n68% confianza: 165 a 195 días.\n95% confianza: 150 a 210 días.\n99.7% confianza: 135 a 225 días.\n\n[DECISIÓN]\n\nOpción 1 Agresivo: 180 días → 50% probabilidad.\nOpción 2 Balanceado: 195 días → 84% probabilidad.\nOpción 3 Conservador: 210 días → 97.5% probabilidad.\n\n[RECOMENDACIÓN]\n\nPara proyectos comerciales: comprometer μ + 1σ (195 días).\n\nBalance entre competitividad y realismo."
+            },
+            "slide6": {
+                "title": "Gráficos de Desviación Estándar",
+                "duration": "6 min",
+                "script": "Visualización de Desviación Estándar.\n\nLa gráfica muestra la distribución normal de duraciones.\n\nEl pico es μ (180 días).\n\n[ÁREAS]\n\nÁrea verde: ±1σ (68% de probabilidad).\nÁrea amarilla: ±2σ (95% de probabilidad).\nÁrea roja: ±3σ (99.7% de probabilidad).\n\n[COEFICIENTE DE VARIACIÓN]\n\nCV = σ / μ × 100%\n\nProyecto: CV = 15 / 180 = 8.3%\n\n[INTERPRETACIÓN]\n\nσ pequeño (CV < 10%): Alta certeza.\nσ medio (10% ≤ CV ≤ 25%): Incertidumbre normal.\nσ grande (CV > 25%): Considerar dividir tarea.\n\n[EJEMPLOS]\n\nTarea simple: σ/μ = 23% → OK.\nIntegración legacy: σ/μ = 41% → DIVIDIR.\n\nNuestro proyecto: 8.3% → Excelente control de incertidumbre para esta escala."
+            },
+            "slide7": {
+                "title": "Cómo se Acumula la Varianza",
+                "duration": "7 min",
+                "script": "Cómo se acumula la varianza.\n\nEsta es LA regla más importante de PERT.\n\n[REGLA CLAVE]\n\nLa varianza SÍ se suma.\nLa desviación NO se suma.\n\n[EJEMPLO VISUAL]\n\nTenemos 3 tareas en secuencia:\n\nTarea A: σ = 2 días, σ² = 4 días².\nTarea B: σ = 3 días, σ² = 9 días².\nTarea C: σ = 4 días, σ² = 16 días².\n\n[OPCIÓN INCORRECTA]\n\nSi sumamos las desviaciones:\nσ_total = 2 + 3 + 4 = 9 días.\n\n[PAUSA]\n\nESTO ES MATEMÁTICAMENTE INCORRECTO.\n\nLas desviaciones NO se suman directamente.\n\n[OPCIÓN CORRECTA]\n\nPaso 1: Sumamos las VARIANZAS.\nσ²_total = 4 + 9 + 16 = 29 días².\n\nPaso 2: Sacamos raíz cuadrada.\nσ_total = √29 = 5.39 días.\n\n[PAUSA]\n\nNoten: 5.39 es MUCHO MENOR que 9.\n\n[INTUICIÓN]\n\n¿Por qué 5.39 y no 9?\n\nPorque las tareas son independientes.\n\nNO TODAS se desvían en la misma dirección al mismo tiempo.\n\n[EJEMPLO]\n\nSi Tarea A se demora más 2 días...\nTarea B puede adelantarse menos 1 día...\nY Tarea C puede demorar más 3 días.\n\nLas desviaciones se COMPENSAN parcialmente.\n\nPor eso σ_total es menor que la suma directa.\n\n[GRÁFICO]\n\nLa gráfica muestra cómo σ² se acumula tarea por tarea.\n\nCada barra es la varianza acumulada hasta ese punto.\n\nAl final, tomamos raíz cuadrada para obtener σ_total.\n\n[CIERRE]\n\nEsta es la matemática detrás de PERT.\n\nSiempre sumamos varianzas, nunca desviaciones."
+            },
+            "slide8": {
+                "title": "Monte Carlo - Simulación",
+                "duration": "8 min",
+                "script": "Simulación de Monte Carlo.\n\n[QUÉ ES]\n\nEn lugar de calcular probabilidades matemáticamente, SIMULAMOS el proyecto 10,000 veces.\n\nCada iteración genera duraciones aleatorias dentro de O-M-P para cada tarea.\n\nSumamos todas → duración total de ESA iteración.\n\nRepetimos 10,000 veces.\n\n[ALGORITMO]\n\nPara i = 1 hasta 10,000:\n  Para cada tarea en ruta crítica:\n    Generar duración aleatoria con distribución Beta(O, M, P).\n  Sumar duraciones → duración_total[i].\n  Guardar.\n\nResultado: 10,000 posibles duraciones del proyecto.\n\n[HISTOGRAMA CON REFERENCIAS]\n\nLa gráfica muestra la distribución real con PERCENTILES CALCULADOS.\n\nNoten las LÍNEAS VERTICALES que marcan puntos clave.\n\nLas BARRAS ESTÁN COLOREADAS por zona de riesgo.\n\n[CÓDIGO DE COLORES]\n\nRojo: Menos de 165 días → Riesgo ALTO (16% probabilidad).\n\nAmarillo: 165 a 180 días → Riesgo MEDIO (50% probabilidad).\n\nVerde: 180 a 195 días → ZONA ÓPTIMA (84% probabilidad) ← RECOMENDADO.\n\nAzul: 195 a 210 días → Conservador (97.5% probabilidad).\n\nPúrpura: Más de 210 días → Muy conservador.\n\n[PERCENTILES CLAVE]\n\nLínea ROJA en 165 días: P16 (μ - 1σ) → Solo 16% de probabilidad.\n\nLínea AMARILLA en 180 días: P50 (Mediana) → 50% de probabilidad.\n\nLínea VERDE GRUESA en 195 días: P84 (μ + 1σ) → 84% de probabilidad → ESTE ES EL RECOMENDADO.\n\nLínea AZUL en 210 días: P97.5 (μ + 2σ) → 97.5% de probabilidad.\n\n[ÁREAS SOMBREADAS]\n\nÁrea verde clara: 68% de los casos caen aquí (μ ± 1σ).\n\nÁrea azul muy tenue: 95% de los casos caen aquí (μ ± 2σ).\n\n[CONCLUSIÓN]\n\nLas líneas de referencia permiten ver EXACTAMENTE qué deadline comprometer según el nivel de riesgo aceptable.\n\nLa zona verde (180-195 días) es el balance óptimo entre competitividad y confiabilidad."
+            },
+            "slide9": {
+                "title": "Monte Carlo - Decisiones",
+                "duration": "8 min",
+                "script": "Resultados de Monte Carlo y decisiones.\n\n[ESTADÍSTICAS]\n\nMedia: 180.3 días (vs PERT: 180).\nMediana: 179.8 días.\nDesviación: 14.8 días (vs PERT: 15).\n\nMínimo: 142 días (extremo optimista).\nMáximo: 238 días (extremo pesimista).\n\n[VALIDACIÓN]\n\nMonte Carlo CONFIRMA los cálculos PERT.\n\nDiferencia de 0.17% en μ.\nDiferencia de 1.3% en σ.\n\n[TABLA DE DECISIÓN]\n\n165 días: 16% probabilidad → NO recomendado.\n180 días (μ): 50% probabilidad → Solo si hay flexibilidad.\n195 días (μ+1σ): 84% probabilidad → RECOMENDADO balanceado.\n210 días (μ+2σ): 97.5% probabilidad → Conservador para proyectos críticos.\n225 días (μ+3σ): 99.7% probabilidad → Puede ser excesivo.\n\n[DECISIÓN FINAL]\n\nComprometer 195 días (μ + 1σ).\n\n84% probabilidad de éxito.\n\nBalance entre competitividad y realismo.\n\nBuffer de 15 días sobre la media.\n\n[MENSAJE AL STAKEHOLDER]\n\nEl proyecto tomará aproximadamente 6.5 meses (195 días) con alta confianza de cumplimiento.\n\n[CIERRE]\n\nEsto es PERT/CPM con Monte Carlo.\n\nMétodos cuantitativos para gestión de incertidumbre.\n\nFin de los anexos."
+            }
+        };
+
+        // Navigation and TTS Variables
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let speechSynthesis = window.speechSynthesis;
+        let currentUtterance = null;
+        let currentSpeed = 1.2;
+        let isSpeaking = false;
+
+        // Initialize charts after DOM loads
+        window.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            showSlide(0);
+        });
+
+        // Show Slide Function
+        function showSlide(n) {
+            if (n >= totalSlides) n = totalSlides - 1;
+            if (n < 0) n = 0;
+            currentSlide = n;
+
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active');
+                if (index === n) {
+                    slide.classList.add('active');
+                }
+            });
+
+            document.getElementById('slideCounter').textContent = `${n + 1} / ${totalSlides}`;
+            document.getElementById('prevBtn').disabled = (n === 0);
+            document.getElementById('nextBtn').disabled = (n === totalSlides - 1);
+
+            updateSidebarContent();
+            stopTTS();
+        }
+
+        // Change Slide Function
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        // Update Sidebar Content
+        function updateSidebarContent() {
+            const slideKey = `slide${currentSlide + 1}`;
+            const speechData = speechDataAnexos[slideKey];
+
+            if (speechData) {
+                document.getElementById('sidebarTitle').textContent = speechData.title;
+                document.getElementById('sidebarDuration').textContent = speechData.duration;
+                document.getElementById('speechContent').innerHTML = formatScriptWithMarkers(speechData.script);
+            }
+        }
+
+        // Format Script with Markers
+        function formatScriptWithMarkers(script) {
+            return script
+                .split('\n\n')
+                .map(para => {
+                    if (para.startsWith('[') && para.endsWith(']')) {
+                        return `<p style="color: #667eea; font-weight: 600; margin-top: 20px;">${para}</p>`;
+                    }
+                    return `<p>${para}</p>`;
+                })
+                .join('');
+        }
+
+        // TTS Functions
+        function toggleTTS() {
+            if (isSpeaking) {
+                pauseTTS();
+            } else {
+                playTTS();
+            }
+        }
+
+        function playTTS() {
+            const slideKey = `slide${currentSlide + 1}`;
+            const speechData = speechDataAnexos[slideKey];
+
+            if (!speechData) return;
+
+            stopTTS();
+
+            const script = speechData.script.replace(/\[.*?\]/g, '').replace(/\n\n/g, '. ');
+            currentUtterance = new SpeechSynthesisUtterance(script);
+            currentUtterance.lang = 'es-ES';
+            currentUtterance.rate = currentSpeed;
+
+            const voices = speechSynthesis.getVoices();
+            const spanishVoice = voices.find(v => v.lang.startsWith('es'));
+            if (spanishVoice) {
+                currentUtterance.voice = spanishVoice;
+            }
+
+            currentUtterance.onend = () => {
+                isSpeaking = false;
+                document.getElementById('playBtn').style.display = 'inline-block';
+                document.getElementById('pauseBtn').style.display = 'none';
+            };
+
+            speechSynthesis.speak(currentUtterance);
+            isSpeaking = true;
+            document.getElementById('playBtn').style.display = 'none';
+            document.getElementById('pauseBtn').style.display = 'inline-block';
+        }
+
+        function pauseTTS() {
+            if (speechSynthesis.speaking) {
+                speechSynthesis.pause();
+                isSpeaking = false;
+                document.getElementById('playBtn').style.display = 'inline-block';
+                document.getElementById('pauseBtn').style.display = 'none';
+            }
+        }
+
+        function stopTTS() {
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+            }
+            isSpeaking = false;
+            document.getElementById('playBtn').style.display = 'inline-block';
+            document.getElementById('pauseBtn').style.display = 'none';
+        }
+
+        function setSpeed(speed) {
+            currentSpeed = parseFloat(speed);
+            if (isSpeaking) {
+                const wasPlaying = !speechSynthesis.paused;
+                playTTS();
+            }
+        }
+
+        function onVoiceChange() {
+            // Voice selection handled automatically
+        }
+
+        // Keyboard Navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') changeSlide(1);
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+            if (e.key === 'Home') showSlide(0);
+            if (e.key === 'End') showSlide(totalSlides - 1);
+        });
+
+        // Initialize Charts
+        function initializeCharts() {
+            // SD Chart (Slide 6)
+            const sdCtx = document.getElementById('sdChart');
+            if (sdCtx) {
+                new Chart(sdCtx, {
+                    type: 'line',
+                    data: {
+                        labels: Array.from({length: 91}, (_, i) => 135 + i),
+                        datasets: [{
+                            label: 'Probabilidad',
+                            data: Array.from({length: 91}, (_, i) => {
+                                const x = 135 + i;
+                                const mu = 180;
+                                const sigma = 15;
+                                return (1 / (sigma * Math.sqrt(2 * Math.PI))) *
+                                       Math.exp(-0.5 * Math.pow((x - mu) / sigma, 2));
+                            }),
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false },
+                            title: { display: true, text: 'Distribución Normal (μ=180, σ=15)', color: '#ffffff' }
+                        },
+                        scales: {
+                            x: { title: { display: true, text: 'Duración (días)', color: '#ffffff' }, ticks: { color: '#ffffff' } },
+                            y: { title: { display: true, text: 'Densidad de Probabilidad', color: '#ffffff' }, ticks: { color: '#ffffff' } }
+                        }
+                    }
+                });
+            }
+
+            // Variance Chart (Slide 7) - Comparación Educativa Simplificada
+            const varianceCtx = document.getElementById('varianceChart');
+            if (varianceCtx) {
+                new Chart(varianceCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Tarea A\n(σ=2)', 'Tarea B\n(σ=3)', 'Tarea C\n(σ=4)', 'TOTAL\n(resultado)'],
+                        datasets: [
+                            {
+                                label: '✅ CORRECTO: √(σ₁² + σ₂² + σ₃²)',
+                                data: [2, 3, 4, 5.39],
+                                backgroundColor: ['rgba(34, 197, 94, 0.7)', 'rgba(34, 197, 94, 0.7)', 'rgba(34, 197, 94, 0.7)', 'rgba(34, 197, 94, 1)'],
+                                borderColor: ['#22c55e', '#22c55e', '#22c55e', '#16a34a'],
+                                borderWidth: 3,
+                                barPercentage: 0.8
+                            },
+                            {
+                                label: '❌ INCORRECTO: σ₁ + σ₂ + σ₃',
+                                data: [2, 3, 4, 9],
+                                backgroundColor: ['rgba(239, 68, 68, 0.7)', 'rgba(239, 68, 68, 0.7)', 'rgba(239, 68, 68, 0.7)', 'rgba(239, 68, 68, 1)'],
+                                borderColor: ['#ef4444', '#ef4444', '#ef4444', '#dc2626'],
+                                borderWidth: 3,
+                                barPercentage: 0.8
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    color: '#ffffff',
+                                    font: { size: 14, weight: 'bold' },
+                                    padding: 20,
+                                    usePointStyle: true,
+                                    pointStyle: 'rectRounded'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Comparación: Cómo Calcular σ_total (en días)',
+                                color: '#ffffff',
+                                font: { size: 17, weight: 'bold' },
+                                padding: { top: 10, bottom: 25 }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                                titleColor: '#ffffff',
+                                bodyColor: '#ffffff',
+                                borderColor: '#667eea',
+                                borderWidth: 2,
+                                padding: 15,
+                                displayColors: true,
+                                titleFont: { size: 14, weight: 'bold' },
+                                bodyFont: { size: 13 },
+                                callbacks: {
+                                    label: function(context) {
+                                        const datasetLabel = context.dataset.label;
+                                        const value = context.parsed.y;
+                                        const taskIndex = context.dataIndex;
+
+                                        if (datasetLabel.includes('CORRECTO')) {
+                                            if (taskIndex === 3) {
+                                                return [
+                                                    '✅ Paso 1: Sumar varianzas',
+                                                    '   σ² = 4 + 9 + 16 = 29 días²',
+                                                    '✅ Paso 2: Sacar raíz',
+                                                    '   σ = √29 = ' + value.toFixed(2) + ' días',
+                                                    '',
+                                                    '👉 Este es el método CORRECTO'
+                                                ];
+                                            } else {
+                                                return '✅ σ = ' + value + ' días (individual)';
+                                            }
+                                        } else {
+                                            if (taskIndex === 3) {
+                                                return [
+                                                    '❌ Suma directa de desviaciones',
+                                                    '   σ = 2 + 3 + 4 = ' + value + ' días',
+                                                    '',
+                                                    '⚠️ ERROR: Sobrestima 67%',
+                                                    '⚠️ NO se suman las desviaciones'
+                                                ];
+                                            } else {
+                                                return '❌ σ = ' + value + ' días (individual)';
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            annotation: {
+                                annotations: {
+                                    line1: {
+                                        type: 'line',
+                                        yMin: 5.39,
+                                        yMax: 5.39,
+                                        borderColor: '#22c55e',
+                                        borderWidth: 4,
+                                        borderDash: [8, 4],
+                                        label: {
+                                            display: true,
+                                            content: 'σ_total = 5.39 días ✅',
+                                            position: 'end',
+                                            backgroundColor: 'rgba(34, 197, 94, 0.95)',
+                                            color: '#ffffff',
+                                            font: { size: 13, weight: 'bold' },
+                                            padding: 8
+                                        }
+                                    },
+                                    line2: {
+                                        type: 'line',
+                                        yMin: 9,
+                                        yMax: 9,
+                                        borderColor: '#ef4444',
+                                        borderWidth: 4,
+                                        borderDash: [8, 4],
+                                        label: {
+                                            display: true,
+                                            content: '9 días ❌ (67% más alto)',
+                                            position: 'start',
+                                            backgroundColor: 'rgba(239, 68, 68, 0.95)',
+                                            color: '#ffffff',
+                                            font: { size: 13, weight: 'bold' },
+                                            padding: 8
+                                        }
+                                    },
+                                    arrow1: {
+                                        type: 'line',
+                                        xMin: 3,
+                                        xMax: 3,
+                                        yMin: 5.39,
+                                        yMax: 9,
+                                        borderColor: '#fbbf24',
+                                        borderWidth: 3,
+                                        label: {
+                                            display: true,
+                                            content: '↕ Diferencia\n3.61 días',
+                                            position: { x: 'end', y: 'center' },
+                                            backgroundColor: 'rgba(251, 191, 36, 0.95)',
+                                            color: '#000000',
+                                            font: { size: 12, weight: 'bold' },
+                                            padding: 6
+                                        }
+                                    },
+                                    box1: {
+                                        type: 'box',
+                                        xMin: 2.65,
+                                        xMax: 3.35,
+                                        yMin: 0,
+                                        yMax: 10,
+                                        backgroundColor: 'rgba(99, 102, 241, 0.08)',
+                                        borderColor: '#6366f1',
+                                        borderWidth: 3,
+                                        borderDash: [6, 3]
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: '#ffffff',
+                                    font: { size: 13, weight: '600' }
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.08)',
+                                    lineWidth: 1
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                max: 10.5,
+                                title: {
+                                    display: true,
+                                    text: 'Desviación Estándar (días)',
+                                    color: '#ffffff',
+                                    font: { size: 15, weight: 'bold' }
+                                },
+                                ticks: {
+                                    color: '#ffffff',
+                                    font: { size: 13 },
+                                    stepSize: 1,
+                                    callback: function(value) {
+                                        if (value === 9) return '9 ❌';
+                                        if (value === 5.39 || (value > 5.3 && value < 5.4)) return '5.39 ✅';
+                                        return value;
+                                    }
+                                },
+                                grid: {
+                                    color: function(context) {
+                                        if (context.tick.value === 5.39 || (context.tick.value > 5.3 && context.tick.value < 5.4)) {
+                                            return 'rgba(34, 197, 94, 0.3)';
+                                        }
+                                        if (context.tick.value === 9) {
+                                            return 'rgba(239, 68, 68, 0.3)';
+                                        }
+                                        return 'rgba(255, 255, 255, 0.08)';
+                                    },
+                                    lineWidth: function(context) {
+                                        if (context.tick.value === 5.39 || context.tick.value === 9) {
+                                            return 2;
+                                        }
+                                        return 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Monte Carlo Chart (Slide 8)
+            const monteCarloCtx = document.getElementById('monteCarloChart');
+            if (monteCarloCtx) {
+                const histogram = generateMonteCarloHistogram();
+
+                // Color bars based on probability zones
+                const backgroundColors = histogram.labels.map(x => {
+                    if (x < 165) return 'rgba(239, 68, 68, 0.6)';  // Red: < μ-1σ (high risk)
+                    if (x < 180) return 'rgba(251, 191, 36, 0.6)';  // Yellow: μ-1σ to μ (medium risk)
+                    if (x < 195) return 'rgba(34, 197, 94, 0.6)';   // Green: μ to μ+1σ (good range)
+                    if (x < 210) return 'rgba(99, 102, 241, 0.6)';  // Blue: μ+1σ to μ+2σ (conservative)
+                    return 'rgba(147, 51, 234, 0.6)';               // Purple: > μ+2σ (very conservative)
+                });
+
+                new Chart(monteCarloCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: histogram.labels,
+                        datasets: [{
+                            label: 'Frecuencia de Simulaciones',
+                            data: histogram.data,
+                            backgroundColor: backgroundColors,
+                            borderColor: backgroundColors.map(c => c.replace('0.6', '1.0')),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        aspectRatio: 1.8,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: { color: '#ffffff', font: { size: 12 } }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Histograma de 10,000 Simulaciones Monte Carlo',
+                                color: '#ffffff',
+                                font: { size: 16, weight: 'bold' }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    afterLabel: function(context) {
+                                        const x = context.parsed.x;
+                                        const label = histogram.labels[x];
+                                        if (label === 165) return 'P16: μ - 1σ (16% prob)';
+                                        if (label === 180) return 'P50: μ (50% prob - Mediana)';
+                                        if (label === 195) return 'P84: μ + 1σ (84% prob) ✅';
+                                        if (label === 210) return 'P97.5: μ + 2σ (97.5% prob)';
+                                        return '';
+                                    }
+                                }
+                            },
+                            annotation: {
+                                annotations: {
+                                    // Vertical line at P50 (median)
+                                    p50Line: {
+                                        type: 'line',
+                                        xMin: 9,
+                                        xMax: 9,
+                                        borderColor: '#fbbf24',
+                                        borderWidth: 3,
+                                        borderDash: [8, 4],
+                                        label: {
+                                            display: true,
+                                            content: 'P50 (Mediana)\n180 días\n50% prob',
+                                            position: 'start',
+                                            backgroundColor: 'rgba(251, 191, 36, 0.9)',
+                                            color: '#000000',
+                                            font: { size: 11, weight: 'bold' },
+                                            padding: 6
+                                        }
+                                    },
+                                    // Vertical line at P85 (μ + 1σ) - RECOMMENDED
+                                    p85Line: {
+                                        type: 'line',
+                                        xMin: 12,
+                                        xMax: 12,
+                                        borderColor: '#22c55e',
+                                        borderWidth: 4,
+                                        borderDash: [8, 4],
+                                        label: {
+                                            display: true,
+                                            content: 'P84 (μ+1σ) ✅\n195 días\n84% prob\nRECOMENDADO',
+                                            position: 'start',
+                                            backgroundColor: 'rgba(34, 197, 94, 0.95)',
+                                            color: '#000000',
+                                            font: { size: 11, weight: 'bold' },
+                                            padding: 8
+                                        }
+                                    },
+                                    // Vertical line at P95 (μ + 2σ)
+                                    p95Line: {
+                                        type: 'line',
+                                        xMin: 15,
+                                        xMax: 15,
+                                        borderColor: '#6366f1',
+                                        borderWidth: 3,
+                                        borderDash: [8, 4],
+                                        label: {
+                                            display: true,
+                                            content: 'P97.5 (μ+2σ)\n210 días\n97.5% prob',
+                                            position: 'start',
+                                            backgroundColor: 'rgba(99, 102, 241, 0.9)',
+                                            color: '#ffffff',
+                                            font: { size: 11, weight: 'bold' },
+                                            padding: 6
+                                        }
+                                    },
+                                    // Vertical line at P16 (μ - 1σ)
+                                    p16Line: {
+                                        type: 'line',
+                                        xMin: 6,
+                                        xMax: 6,
+                                        borderColor: '#ef4444',
+                                        borderWidth: 2,
+                                        borderDash: [4, 4],
+                                        label: {
+                                            display: true,
+                                            content: 'P16 (μ-1σ)\n165 días\n16% prob',
+                                            position: 'end',
+                                            backgroundColor: 'rgba(239, 68, 68, 0.9)',
+                                            color: '#ffffff',
+                                            font: { size: 10, weight: 'bold' },
+                                            padding: 4
+                                        }
+                                    },
+                                    // Shaded box: 68% confidence (μ ± 1σ)
+                                    box68: {
+                                        type: 'box',
+                                        xMin: 6,
+                                        xMax: 12,
+                                        yMin: 0,
+                                        yMax: 600,
+                                        backgroundColor: 'rgba(34, 197, 94, 0.08)',
+                                        borderWidth: 0,
+                                        label: {
+                                            display: true,
+                                            content: '68% de casos (μ ± 1σ)',
+                                            position: { x: 'center', y: 'end' },
+                                            color: '#22c55e',
+                                            font: { size: 12, weight: 'bold' }
+                                        }
+                                    },
+                                    // Shaded box: 95% confidence (μ ± 2σ)
+                                    box95: {
+                                        type: 'box',
+                                        xMin: 3,
+                                        xMax: 15,
+                                        yMin: 0,
+                                        yMax: 600,
+                                        backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                                        borderWidth: 0
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Duración del Proyecto (días)',
+                                    color: '#ffffff',
+                                    font: { size: 14, weight: 'bold' }
+                                },
+                                ticks: {
+                                    color: '#ffffff',
+                                    font: { size: 11 },
+                                    callback: function(value, index) {
+                                        const label = histogram.labels[index];
+                                        // Highlight key percentiles
+                                        if (label === 165) return '165 (P16)';
+                                        if (label === 180) return '180 (P50)';
+                                        if (label === 195) return '195 (P84) ✅';
+                                        if (label === 210) return '210 (P97.5)';
+                                        return label;
+                                    }
+                                },
+                                grid: {
+                                    color: function(context) {
+                                        const index = context.index;
+                                        const label = histogram.labels[index];
+                                        // Highlight grid lines at key percentiles
+                                        if (label === 165) return 'rgba(239, 68, 68, 0.3)';
+                                        if (label === 180) return 'rgba(251, 191, 36, 0.4)';
+                                        if (label === 195) return 'rgba(34, 197, 94, 0.5)';
+                                        if (label === 210) return 'rgba(99, 102, 241, 0.4)';
+                                        return 'rgba(255, 255, 255, 0.08)';
+                                    },
+                                    lineWidth: function(context) {
+                                        const index = context.index;
+                                        const label = histogram.labels[index];
+                                        if ([165, 180, 195, 210].includes(label)) return 2;
+                                        return 1;
+                                    }
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Frecuencia (simulaciones)',
+                                    color: '#ffffff',
+                                    font: { size: 14, weight: 'bold' }
+                                },
+                                ticks: {
+                                    color: '#ffffff',
+                                    font: { size: 11 }
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Generate Monte Carlo Histogram Data
+        function generateMonteCarloHistogram() {
+            const mu = 180;
+            const sigma = 15;
+            const bins = 20;
+            const data = [];
+            const labels = [];
+
+            for (let i = 0; i < bins; i++) {
+                const x = 135 + (i * 5);
+                labels.push(x);
+                const y = Math.exp(-0.5 * Math.pow((x - mu) / sigma, 2)) * 500;
+                data.push(Math.round(y));
+            }
+
+            return { labels, data };
+        }
+
+        // SECRET KEY COMBINATION TO ENABLE SPEECH MODE
+        // Combination: Ctrl + Shift + S
+        let secretKeyActive = false;
+        const secretKeys = { ctrl: false, shift: false, s: false };
+
+        document.addEventListener('keydown', function(e) {
+            // Track key combinations
+            if (e.ctrlKey) secretKeys.ctrl = true;
+            if (e.shiftKey) secretKeys.shift = true;
+            if (e.key.toLowerCase() === 's') secretKeys.s = true;
+
+            // Check if all keys are pressed
+            if (secretKeys.ctrl && secretKeys.shift && secretKeys.s && !secretKeyActive) {
+                secretKeyActive = true;
+                toggleSpeechMode();
+                console.log('🎤 Speech mode activated!');
+            }
+        });
+
+        document.addEventListener('keyup', function(e) {
+            // Reset key tracking
+            if (!e.ctrlKey) secretKeys.ctrl = false;
+            if (!e.shiftKey) secretKeys.shift = false;
+            if (e.key.toLowerCase() === 's') secretKeys.s = false;
+        });
+
+        function toggleSpeechMode() {
+            const sidebar = document.getElementById('sidebar');
+            const slideArea = document.querySelector('.slide-area');
+            const ttsControls = document.querySelector('.tts-controls');
+
+            if (secretKeyActive) {
+                // Show speech mode
+                sidebar.classList.add('visible');
+                slideArea.classList.add('with-sidebar');
+                ttsControls.classList.add('visible');
+
+                // Add visual indicator
+                const indicator = document.createElement('div');
+                indicator.id = 'speech-indicator';
+                indicator.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    left: 20px;
+                    background: rgba(102, 126, 234, 0.9);
+                    color: white;
+                    padding: 10px 20px;
+                    border-radius: 25px;
+                    font-size: 0.9rem;
+                    z-index: 1000;
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+                `;
+                indicator.textContent = '🎤 Modo Profesor Activado';
+                document.body.appendChild(indicator);
+
+                // Auto-hide indicator after 3 seconds
+                setTimeout(() => {
+                    indicator.style.opacity = '0';
+                    indicator.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => indicator.remove(), 500);
+                }, 3000);
+            }
+        }
+
+        // Initialize as student version (speech hidden)
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('📚 Versión Alumno cargada. Presiona Ctrl+Shift+S para modo profesor.');
+        });
+    </script>
+</body>
+</html>
