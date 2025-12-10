@@ -1,0 +1,92 @@
+=== REVISION COMPLETA CLASE2_PROFESOR.HTML ===
+Fecha: 2025-12-09
+Despues de agregar Slide HTML 7: Combinando PERT y CPM
+
+BALANCE: 24 Slides HTML = 24 Speeches (OK)
+
+=== MAPEO SLIDE POR SLIDE ===
+
+Slide | HTML Title | Speech Title | Status
+------+------------+--------------+--------
+1  | Tradicionales y Agiles | Portada | OK - mismo contenido
+2  | Agenda de la Clase | Agenda | OK
+3  | PERT: Estimacion de 3 Puntos | Introduccion a PERT | OK
+4  | Formulas PERT | Formula PERT | OK
+5  | Ejemplo Practico PERT | PERT en Proyectos Complejos | REVISAR - contenidos diferentes
+6  | CPM: Critical Path Method | CPM - Critical Path Method | OK
+7  | Combinando PERT y CPM | Combinando PERT y CPM | OK - NUEVO SLIDE AGREGADO
+8  | Estimacion Agil: El Cambio de Paradigma | Introduccion a Estimacion Agil | OK
+9  | Tecnica 1: T-Shirt Sizing | Story Points y Escala Fibonacci | CORRIDO
+10 | Tecnica 2: Story Points | T-Shirt Sizing | CORRIDO
+11 | La Secuencia de Fibonacci | Break - Preguntas y Transicion | CORRIDO
+12 | Preguntas ? (break) | Planning Poker - Introduccion y Marco Teorico | CORRIDO
+13 | Planning Poker | Demostracion - Historia HU-3 (Password Reset) | CORRIDO
+14 | Caso de Estudio: Backlog de Autenticacion | Proceso Planning Poker - Paso a Paso | CORRIDO
+15 | Proceso de Planning Poker (Paso a Paso) | La Discusion - El Corazon del Taller | CORRIDO
+16 | La Discusion: El Corazon del Taller | Re-votacion y Consenso | CORRIDO
+17 | Re-votacion y Consenso | Debriefing - Lecciones del Planning Poker | CORRIDO
+18 | Debriefing: Lecciones del Planning Poker | Velocidad - De Points a Forecasting | CORRIDO
+19 | Velocidad: De Points a Forecasting | Flujo de Refinamiento Progresivo | CORRIDO
+20 | Flujo de Refinamiento Progresivo | Cuadro Comparativo de Metodos | CORRIDO
+21 | Cuadro Comparativo de Metodos | Cuando Usar Cada Metodo? | CORRIDO
+22 | Cuando Usar Cada Metodo? | La Pregunta Critica (Reprise) | CORRIDO
+23 | La Pregunta Critica (Reprise) | Resumen de la Clase 2 | CORRIDO
+24 | Resumen de la Clase 2 | Fin de la Clase 2 | CORRIDO
+
+=== PROBLEMAS IDENTIFICADOS ===
+
+PROBLEMA 1: Slide 5
+- HTML muestra: Ejemplo concreto con migracion DB (O=5, M=10, P=25)
+- Speech dice: Concepto general de PERT en proyectos complejos
+- ACCION REQUERIDA: Speech debe hablar del ejemplo de migracion DB
+
+PROBLEMA 2: Slides 9-24 TODOS CORRIDOS
+- A partir del slide 9, HTML y Speech estan descorridos en 1 posicion
+- HTML slide 9 "T-Shirt Sizing" -> Speech slide9 "Story Points"
+- HTML slide 10 "Story Points" -> Speech slide10 "T-Shirt Sizing"
+- Esto continua hasta el final
+
+CAUSA: Aunque agregamos el slide HTML 7, los speeches ya estaban numerados
+       incluyendo slide7, por lo que ahora del slide 8 en adelante NO coinciden.
+
+=== ANALISIS DETALLADO ===
+
+SECCION 1: PERT/CPM (Slides 1-7)
+- Slides 1-4: OK
+- Slide 5: Contenido diferente (pero numeracion OK)
+- Slides 6-7: OK
+
+SECCION 2: ESTIMACION AGIL (Slides 8-11)
+- Slide 8 HTML: "Estimacion Agil" -> Speech slide8: "Introduccion a Estimacion Agil" (OK en concepto)
+- Slide 9 HTML: "T-Shirt Sizing" -> Speech slide9: "Story Points" (MAL)
+- Slide 10 HTML: "Story Points" -> Speech slide10: "T-Shirt Sizing" (MAL - invertidos!)
+- Slide 11 HTML: "Fibonacci" -> Speech slide11: "Break" (MAL)
+
+SECCION 3: PLANNING POKER (Slides 12-17)
+- Todos corridos en 1 posicion
+
+SECCION 4: VELOCIDAD Y CIERRE (Slides 18-24)
+- Todos corridos en 1 posicion
+
+=== CONCLUSION ===
+
+OPCION B (agregar slide HTML) funciono para balancear el numero,
+pero NO resolvio el problema de sincronizacion.
+
+RAZON: Los speeches 9 y 10 estan INVERTIDOS respecto a los slides HTML:
+- HTML: T-Shirt (9), Story Points (10)
+- Speech: Story Points (9), T-Shirt (10)
+
+Esto sugiere que hubo un error de orden en los speeches originales.
+
+=== RECOMENDACION ===
+
+PROCEDER CON OPCION A (reorganizar speeches):
+
+1. Verificar el orden correcto en HTML
+2. Reordenar speeches slide9 y slide10 (intercambiarlos)
+3. Revisar slide11 (Fibonacci vs Break)
+4. Revisar slides 12-24 uno por uno
+5. Ajustar contenidos donde sea necesario
+
+ESTIMACION: 45-60 minutos de trabajo para reorganizacion completa

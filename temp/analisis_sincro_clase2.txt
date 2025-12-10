@@ -1,0 +1,66 @@
+=== ANALISIS DE SINCRONIZACION CLASE2_PROFESOR.HTML ===
+
+PROBLEMA DETECTADO:
+- Total slides HTML: 23
+- Total speeches: 24
+- DESBALANCE: Hay 1 speech EXTRA
+
+Esto causa que desde cierto punto, los slides y speeches se descorran.
+
+=== MAPEO ESPERADO ===
+
+Slide 1 (HTML h2 #1) -> slide1 (speech)
+Slide 2 (HTML h2 #2) -> slide2 (speech)
+...
+Slide 23 (HTML h2 #23) -> slide23 (speech)
+
+=== LISTADO DE SLIDES HTML ===
+
+1. Tradicionales y Ágiles (portada)
+2. Agenda de la Clase
+3. PERT: Estimación de 3 Puntos
+4. Fórmulas PERT
+5. Ejemplo Práctico PERT
+6. CPM: Critical Path Method
+7. Estimación Ágil: El Cambio de Paradigma
+8. Técnica 1: T-Shirt Sizing
+9. Técnica 2: Story Points
+10. La Secuencia de Fibonacci
+11. Preguntas ?  (break)
+12. Planning Poker
+13. Caso de Estudio: Backlog de Autenticación
+14. Proceso de Planning Poker (Paso a Paso)
+15. La Discusión: El Corazón del Taller
+16. Re-votación y Consenso
+17. Debriefing: Lecciones del Planning Poker
+18. Velocidad: De Points a Forecasting
+19. Flujo de Refinamiento Progresivo
+20. Cuadro Comparativo de Métodos
+21. ¿Cuándo Usar Cada Método?
+22. La Pregunta Crítica (Reprise)
+23. Resumen de la Clase 2
+
+=== LISTADO DE SPEECHES ===
+
+slide1: Portada
+slide2: Agenda
+slide3: Introducción a PERT
+slide4: Fórmula PERT
+slide5: PERT en Proyectos Complejos
+slide6: CPM - Critical Path Method
+slide7: Combinando PERT y CPM
+slide8: Introducción a Estimación Ágil
+slide9: Story Points y Escala Fibonacci
+slide10: T-Shirt Sizing
+slide11: Break - Preguntas y Transición
+slide12: Planning Poker - Introducción y Marco Teórico
+slide13: Demostración - Historia HU-3 (Password Reset)
+... [necesito verificar slide14-24]
+
+=== HIPÓTESIS ===
+
+El problema parece estar en que:
+1. Hay un speech para un slide que no existe en HTML, O
+2. Hay un slide HTML sin speech correspondiente
+
+Necesito revisar manualmente desde slide 6 en adelante donde reportaste problemas.
