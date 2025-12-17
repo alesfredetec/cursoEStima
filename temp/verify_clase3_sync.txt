@@ -1,0 +1,75 @@
+VERIFICACIÓN DE SINCRONIZACIÓN CLASE3_PROFESOR.HTML
+========================================================
+
+Mapeo implementado:
+-------------------
+Position 0  → slide1   : Portada
+Position 1  → slide2   : Agenda
+Position 2  → slide3   : Eliyahu Goldratt
+Position 3  → slide4   : El Problema que Goldratt Vio
+Position 4  → slide5   : Cadena Crítica vs Ruta Crítica
+Position 5  → slide6   : Los 3 Principios de CCPM
+Position 6  → slide7   : Holgura vs Buffer
+Position 7  → slide8   : Los 3 Tipos de Buffers
+Position 8  → slide9   : Buffer de Alimentación
+Position 9  → slide10  : Buffer de Recursos
+Position 10 → slide10b : Diagrama Visual de Buffers ✓ NUEVO SPEECH
+Position 11 → slide11  : Dimensionamiento de Buffers
+Position 12 → slide12  : Método SSQ
+Position 13 → slide13  : Gráfico de Fiebre Visual
+Position 14 → slide14  : Break
+Position 15 → slide15  : Taller Intro
+Position 16 → slide16  : Proyecto Setup
+Position 17 → slide17  : Paso 1 - CPM
+Position 18 → slide18  : Paso 2 - La Revelación
+Position 19 → slide19  : Paso 3 - Cadena Crítica
+Position 20 → slide20  : El Momento "Aha!"
+Position 21 → slide21  : Paso 4 - Aplicar CCPM
+Position 22 → slide22  : Paso 5 - Buffer
+Position 23 → slide23  : Resultado Final
+Position 24 → slide24  : Debriefing del Caso
+Position 25 → slide25  : Tabla Comparativa Final
+Position 26 → slide26  : ¿Cuándo usar qué?
+Position 27 → slide27  : Hibridación
+Position 28 → slide28  : Resumen Completo del Curso
+Position 29 → slide29  : Lo que NO hacer
+Position 30 → slide30  : Lo que SÍ hacer
+Position 31 → slide31  : Recursos Adicionales
+Position 32 → slide32  : Cierre del Curso
+
+Total: 33 slides HTML, 33 speeches (incluye slide10b nuevo)
+
+Cambios realizados:
+-------------------
+1. Agregado speech "slide10b" en speechDataClase3 (línea ~1957)
+   - Título: "Diagrama Visual: Los 3 Tipos de Buffers"
+   - Duración: 3 min
+   - Contenido: Descripción del diagrama SVG integrando los 3 buffers
+
+2. Agregado slideToSpeechMap array (después de línea 2072)
+   - 33 elementos mapeando posición a slideKey
+   - Posición 10 → 'slide10b' (resuelve el desfase)
+
+3. Actualizada función updateSidebarContent() (línea ~2161)
+   - Cambio: const slideKey = slideToSpeechMap[currentSlide];
+   - Agregado fallback para speeches no encontrados
+
+4. Actualizada función playTTS_Browser() (línea ~2261)
+   - Cambio: const slideKey = slideToSpeechMap[currentSlide];
+
+5. Actualizada función playTTS_OpenAI() (línea ~2322)
+   - Cambio: const slideKey = slideToSpeechMap[currentSlide];
+
+Verificación:
+-------------
+✓ Antes: Position 10 → slide11 (incorrecto, mostraba speech de slide 11)
+✓ Ahora: Position 10 → slide10b (correcto, muestra speech de diagrama)
+
+✓ Antes: Position 11 → slide12 (incorrecto, desfasado)
+✓ Ahora: Position 11 → slide11 (correcto, sincronizado)
+
+✓ Antes: Position 32 → slide33 (no existía, error)
+✓ Ahora: Position 32 → slide32 (correcto, cierre del curso)
+
+Estado: SINCRONIZACIÓN CORREGIDA ✓
+Fecha: 2025-12-17

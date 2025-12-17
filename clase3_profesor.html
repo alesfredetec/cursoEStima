@@ -1954,6 +1954,11 @@
                         "duration": "2 min",
                         "script": "[VER DIAGRAMA en slide]\n\nRecuerden: Resource Buffer NO es tiempo, es ALERTA.\n\n[LEER elementos del slide]\n\n'NO es tiempo adicional' - No suma días al cronograma.\n'Es una ALERTA' - Notificación anticipada.\n'Asegura disponibilidad' - El recurso estará listo cuando lo necesites.\n\n[EJEMPLO del slide] Si recurso crítico (María) necesita 2 días de aviso, colocamos RB 2 días antes de su tarea.\n\n[ÉNFASIS] Esto es coordinación proactiva, no padding reactivo.\n\n[TRANSICIÓN] Ahora veamos un diagrama que integra los 3 tipos de buffers..."
             },
+            "slide10b": {
+                        "title": "Diagrama Visual: Los 3 Tipos de Buffers",
+                        "duration": "3 min",
+                        "script": "[VER DIAGRAMA SVG en slide]\n\n**Visualización completa del sistema de protección de CCPM**\n\n[PAUSA - dejar que observen el diagrama]\n\nEste diagrama integra los 3 tipos de buffers que vimos:\n\n[SEÑALAR arriba y abajo]\n\n**Cadenas NO Críticas** (amarillo, arriba y abajo):\n- Tareas X, Y, Z que NO están en la cadena crítica\n- Pero convergen hacia la cadena crítica en algún punto\n\n[SEÑALAR buffers amarillos]\n\n**Feeding Buffers (FB)** - Las protecciones punteadas amarillas:\n- Colocados donde cadena NO crítica se une a la crítica\n- Protegen la cadena crítica de retrasos en cadenas secundarias\n\n[SEÑALAR centro]\n\n**Cadena Crítica** (azul, centro):\n- Tareas A y B - la secuencia más larga considerando recursos\n- Esta es la columna vertebral del proyecto\n\n[SEÑALAR buffer verde]\n\n**Project Buffer (PB)** - El grande al final (verde):\n- Protege la fecha de entrega final\n- Se monitorea con Fever Chart\n\n[SEÑALAR campana púrpura]\n\n**Resource Buffer (RB)** - La alarma (🔔):\n- NO es tiempo, es notificación\n- Avisa al recurso crítico que se prepare\n\n[PAUSA]\n\nEsta es la arquitectura completa de CCPM.\n\nBuffers estratégicamente ubicados protegiendo los puntos críticos del proyecto.\n\n[TRANSICIÓN]\n\nOK, ahora la pregunta: ¿Cuán grande debe ser el Project Buffer?"
+            },
 "slide11": {
                         "title": "Dimensionamiento de Buffers - Método 1",
                         "duration": "8 min",
@@ -2066,6 +2071,43 @@
             }
 };
 
+        // Slide to Speech Mapping (handles slide 10b)
+        const slideToSpeechMap = [
+            'slide1',  // 0: Portada
+            'slide2',  // 1: Agenda
+            'slide3',  // 2: Eliyahu Goldratt
+            'slide4',  // 3: El Problema que Goldratt Vio
+            'slide5',  // 4: Cadena Crítica vs Ruta Crítica
+            'slide6',  // 5: Los 3 Principios de CCPM
+            'slide7',  // 6: Holgura vs Buffer
+            'slide8',  // 7: Los 3 Tipos de Buffers
+            'slide9',  // 8: Buffer de Alimentación
+            'slide10', // 9: Buffer de Recursos
+            'slide10b', // 10: Diagrama Visual de Buffers
+            'slide11', // 11: Dimensionamiento de Buffers
+            'slide12', // 12: Método SSQ
+            'slide13', // 13: Gráfico de Fiebre Visual
+            'slide14', // 14: Break
+            'slide15', // 15: Taller Intro
+            'slide16', // 16: Proyecto Setup
+            'slide17', // 17: Paso 1 - CPM
+            'slide18', // 18: Paso 2 - La Revelación
+            'slide19', // 19: Paso 3 - Cadena Crítica
+            'slide20', // 20: El Momento "Aha!"
+            'slide21', // 21: Paso 4 - Aplicar CCPM
+            'slide22', // 22: Paso 5 - Buffer
+            'slide23', // 23: Resultado Final
+            'slide24', // 24: Debriefing del Caso
+            'slide25', // 25: Tabla Comparativa Final
+            'slide26', // 26: ¿Cuándo usar qué?
+            'slide27', // 27: Hibridación
+            'slide28', // 28: Resumen Completo del Curso
+            'slide29', // 29: Lo que NO hacer
+            'slide30', // 30: Lo que SÍ hacer
+            'slide31', // 31: Recursos Adicionales
+            'slide32'  // 32: Cierre del Curso
+        ];
+
         // Navigation and TTS Variables
         let currentSlide = 0;
         const slides = document.querySelectorAll('.slide');
@@ -2117,7 +2159,7 @@
 
         // Update Sidebar Content
         function updateSidebarContent() {
-            const slideKey = `slide${currentSlide + 1}`;
+            const slideKey = slideToSpeechMap[currentSlide];
             const speechData = speechDataClase3[slideKey];
 
             if (speechData) {
@@ -2127,6 +2169,11 @@
                 // Format script with visual markers
                 const formattedScript = formatScriptWithMarkers(speechData.script);
                 document.getElementById('speechContent').innerHTML = formattedScript;
+            } else {
+                // Fallback if no speech found
+                document.getElementById('speechTitle').textContent = 'Sin speech';
+                document.getElementById('speechDuration').textContent = '';
+                document.getElementById('speechContent').innerHTML = '<p style="color: #ff6b6b;">⚠️ No hay speech script para este slide.</p>';
             }
         }
 
@@ -2212,7 +2259,7 @@
 
         // Browser TTS (Native Web Speech API)
         function playTTS_Browser() {
-            const slideKey = `slide${currentSlide + 1}`;
+            const slideKey = slideToSpeechMap[currentSlide];
             const speechData = speechDataClase3[slideKey];
 
             if (!speechData) return;
@@ -2273,7 +2320,7 @@
 
         // OpenAI TTS (Professional Quality)
         async function playTTS_OpenAI() {
-            const slideKey = `slide${currentSlide + 1}`;
+            const slideKey = slideToSpeechMap[currentSlide];
             const speechData = speechDataClase3[slideKey];
 
             if (!speechData) return;
